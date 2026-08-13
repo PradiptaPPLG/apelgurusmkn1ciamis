@@ -32,6 +32,84 @@
         box-shadow: var(--card-shadow);
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
+    /* Kebab Dropdown Menu styles */
+    .dropdown-kebab {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .kebab-btn {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        font-size: 1.15rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: var(--radius-sm);
+        transition: var(--transition-smooth);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .kebab-btn:hover {
+        background: #f1f5f9;
+        color: var(--text-main);
+    }
+    
+    .dropdown-menu-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: #ffffff;
+        min-width: 120px;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        border-radius: var(--radius-md);
+        z-index: 100;
+        padding: 0.3rem 0;
+        animation: fadeIn 0.15s ease-out;
+        text-align: left;
+    }
+    
+    .dropdown-menu-content button, 
+    .dropdown-menu-content a {
+        background: none;
+        border: none;
+        width: 100%;
+        padding: 0.45rem 1rem;
+        font-size: 0.85rem;
+        font-family: var(--font-primary);
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: var(--transition-smooth);
+    }
+    
+    .dropdown-menu-content button:hover, 
+    .dropdown-menu-content a:hover {
+        background-color: #f1f5f9;
+        color: var(--text-main);
+    }
+
+    .dropdown-menu-content form {
+        margin: 0;
+    }
+    
+    .dropdown-menu-content button.delete-btn {
+        color: var(--accent-rose);
+    }
+    
+    .dropdown-menu-content button.delete-btn:hover {
+        background-color: #fef2f2;
+        color: var(--accent-rose);
+    }
 </style>
 
 <!-- Admin Navbar -->
@@ -216,22 +294,23 @@
                                             {{ ucfirst($p->status) }}
                                         </span>
                                     </td>
-                                    <td style="text-align: right;">
-                                        <div style="display: inline-flex; gap: 0.35rem;">
-                                            <button type="button" 
-                                                    class="btn btn-secondary btn-sm" 
-                                                    style="padding: 0.4rem 0.6rem;"
-                                                    onclick="openEditModal('{{ $p->nik }}', '{{ addslashes($p->name) }}', '{{ $p->role }}', '{{ $p->status }}')">
-                                                <i class="fa-solid fa-pen-to-square"></i>
+                                    <td style="text-align: right; overflow: visible;">
+                                        <div class="dropdown-kebab">
+                                            <button class="kebab-btn" onclick="toggleDropdown(event, 'drop-{{ $p->nik }}')" title="Aksi">
+                                                <i class="fa-solid fa-ellipsis-vertical"></i>
                                             </button>
-                                            
-                                            <form action="{{ route('admin.participants.delete', $p->nik) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data peserta ini? Semua riwayat kehadirannya juga akan dihapus.')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.4rem 0.6rem;">
-                                                    <i class="fa-solid fa-trash"></i>
+                                            <div id="drop-{{ $p->nik }}" class="dropdown-menu-content">
+                                                <button type="button" onclick="openEditModal('{{ $p->nik }}', '{{ addslashes($p->name) }}', '{{ $p->role }}', '{{ $p->status }}')">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Edit
                                                 </button>
-                                            </form>
+                                                <form action="{{ route('admin.participants.delete', $p->nik) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data peserta ini? Semua riwayat kehadirannya juga akan dihapus.')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="delete-btn">
+                                                        <i class="fa-solid fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -321,6 +400,30 @@
         if (e.target === editModal) {
             closeEditModal();
         }
+    });
+
+    // Toggle dropdown function
+    function toggleDropdown(event, id) {
+        event.stopPropagation();
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-menu-content').forEach(el => {
+            if (el.id !== id) {
+                el.style.display = 'none';
+            }
+        });
+        
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    // Close all dropdowns when clicking outside
+    window.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu-content').forEach(el => {
+            el.style.display = 'none';
+        });
     });
 </script>
 @endsection
