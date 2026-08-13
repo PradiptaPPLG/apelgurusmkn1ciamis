@@ -712,3 +712,209 @@ a:hover {
     color: var(--text-light);
     font-weight: 500;
 }
+
+/* ============================================================
+   Reusable Grid Helpers (classname-based, responsive-friendly)
+   ============================================================ */
+
+.time-grid-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.filter-form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+/* ============================================================
+   RESPONSIVE — Tablet (≤ 1024px)
+   ============================================================ */
+
+@media (max-width: 1024px) {
+    .glass-container-wide {
+        width: 98%;
+        padding: 1.5rem;
+        margin: 1rem auto;
+    }
+
+    .panel-split {
+        grid-template-columns: 1fr 2fr;
+        gap: 1.25rem;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — Mobile (≤ 768px)
+   ============================================================ */
+
+@media (max-width: 768px) {
+    /* Admin Navbar — collapse to compact bar */
+    .admin-navbar {
+        padding: 0.65rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .admin-nav-links {
+        gap: 0.85rem;
+        order: 3;
+        width: 100%;
+        border-top: 1px solid var(--card-border);
+        padding-top: 0.5rem;
+    }
+
+    .admin-nav-link {
+        font-size: 0.82rem;
+    }
+
+    .admin-user-menu {
+        gap: 0.5rem;
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+
+    /* Wide container — edge-to-edge on small screens */
+    .glass-container-wide {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: 1rem;
+    }
+
+    /* Panel split — single column stacked */
+    .panel-split {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Filter search form — stack rows */
+    .filter-form-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+    }
+
+    .filter-form-grid > div:first-child {
+        grid-column: 1 / -1; /* Search bar full width */
+    }
+
+    /* Stats grid — 1 column on very small screens */
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.35rem;
+    }
+
+    /* Tables — horizontal scroll on mobile */
+    .table-responsive {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        width: calc(100% + 2rem);
+    }
+
+    .table-custom th,
+    .table-custom td {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.83rem;
+        white-space: nowrap;
+    }
+
+    /* Time picker grid — keep 2 cols on mobile */
+    .time-grid-cols {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    /* Client check-in form — reduce padding */
+    .glass-container {
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        padding: 1.75rem 1.25rem;
+        border: none;
+        box-shadow: none;
+    }
+
+    body.client-layout {
+        padding: 0;
+        justify-content: flex-start;
+    }
+
+    .brand-title {
+        font-size: 1.5rem;
+    }
+
+    /* Signature canvas — shorter on mobile */
+    .signature-canvas {
+        height: 140px;
+    }
+
+    /* Form modal inline (add participant panel) */
+    .form-modal-inline {
+        padding: 1rem;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — Small Mobile (≤ 480px)
+   ============================================================ */
+
+@media (max-width: 480px) {
+    .filter-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-form-grid > div:first-child {
+        grid-column: 1;
+    }
+
+    .admin-navbar {
+        padding: 0.6rem 0.85rem;
+    }
+
+    .admin-nav-links {
+        gap: 0.6rem;
+    }
+
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.6rem 1rem;
+    }
+
+    .btn-sm {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .share-widget {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .glass-container-wide {
+        padding: 0.85rem;
+    }
+}

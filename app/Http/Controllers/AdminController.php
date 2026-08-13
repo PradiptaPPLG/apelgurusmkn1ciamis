@@ -161,11 +161,13 @@ class AdminController extends Controller
         $request->validate([
             'nik' => 'required|string|unique:participants,nik',
             'name' => 'required|string|max:255',
+            'jabatan' => 'nullable|string|max:255',
+            'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
             'role' => 'required|in:Guru,TU,PPL,PPG',
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        Participant::create($request->all());
+        Participant::create($request->only(['nik', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
 
         return redirect()->route('admin.participants')->with('success', 'Data Guru/Peserta berhasil ditambahkan.');
     }
@@ -180,11 +182,13 @@ class AdminController extends Controller
         $request->validate([
             'nik' => 'required|string|unique:participants,nik,' . $nik . ',nik',
             'name' => 'required|string|max:255',
+            'jabatan' => 'nullable|string|max:255',
+            'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
             'role' => 'required|in:Guru,TU,PPL,PPG',
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        $participant->update($request->all());
+        $participant->update($request->only(['nik', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
 
         return redirect()->route('admin.participants')->with('success', 'Data Guru/Peserta berhasil diperbarui.');
     }
@@ -235,7 +239,7 @@ class AdminController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = ['No', 'NIK', 'Nama', 'Peran', 'Waktu Hadir', 'Latitude', 'Longitude'];
+        $columns = ['No', 'NIK', 'Nama', 'Jabatan', 'Jenis Kepegawaian', 'Peran', 'Waktu Hadir', 'Latitude', 'Longitude'];
 
         $callback = function() use($attendances, $columns) {
             $file = fopen('php://output', 'w');
@@ -250,6 +254,8 @@ class AdminController extends Controller
                     $idx + 1,
                     $attendance->participant_nik,
                     $attendance->participant->name ?? 'N/A',
+                    $attendance->participant->jabatan ?? 'N/A',
+                    $attendance->participant->jenis_kepegawaian ?? 'N/A',
                     $attendance->participant->role ?? 'N/A',
                     $attendance->signed_in_at->format('Y-m-d H:i:s'),
                     $attendance->latitude ?? 'N/A',

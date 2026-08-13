@@ -192,6 +192,23 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label" for="jabatan">Jabatan</label>
+                    <input type="text" name="jabatan" id="jabatan" class="form-control" placeholder="Contoh: Guru Mapel, Kepala TU">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="jenis_kepegawaian">Jenis Kepegawaian</label>
+                    <select name="jenis_kepegawaian" id="jenis_kepegawaian" class="form-control form-select">
+                        <option value="">— Pilih —</option>
+                        <option value="asn">ASN</option>
+                        <option value="pns">PNS</option>
+                        <option value="p3k">P3K</option>
+                        <option value="honorer">Honorer</option>
+                        <option value="mahasiswa">Mahasiswa (PPL/PPG)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label" for="role">Peran / Kategori</label>
                     <select name="role" id="role" class="form-control form-select" required>
                         <option value="Guru">Guru</option>
@@ -219,7 +236,7 @@
         <div>
             <!-- Filters Form -->
             <div style="background: rgba(255, 255, 255, 0.4); padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--card-border); margin-bottom: 1.5rem;">
-                <form action="{{ route('admin.participants') }}" method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.75rem; align-items: flex-end;">
+                <form action="{{ route('admin.participants') }}" method="GET" class="filter-form-grid">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" for="search" style="font-size: 0.75rem;">Cari Nama / NIK</label>
                         <input type="text" name="search" id="search" class="form-control" placeholder="Kata kunci..." value="{{ request('search') }}">
@@ -272,6 +289,8 @@
                             <tr>
                                 <th>NIK / ID</th>
                                 <th>Nama Lengkap</th>
+                                <th>Jabatan</th>
+                                <th>Jenis Kepegawaian</th>
                                 <th>Kategori</th>
                                 <th style="text-align: center;">Status</th>
                                 <th style="text-align: right;">Aksi</th>
@@ -287,6 +306,16 @@
                                         <div style="font-weight: 600; color: var(--text-main);">{{ $p->name }}</div>
                                     </td>
                                     <td>
+                                        {{ $p->jabatan ?: '—' }}
+                                    </td>
+                                    <td>
+                                        @if($p->jenis_kepegawaian)
+                                            <span class="badge badge-info" style="text-transform: uppercase;">{{ $p->jenis_kepegawaian }}</span>
+                                        @else
+                                            <span style="color: var(--text-light);">—</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <span class="badge badge-info">{{ $p->role }}</span>
                                     </td>
                                     <td style="text-align: center;">
@@ -300,7 +329,7 @@
                                                 <i class="fa-solid fa-ellipsis-vertical"></i>
                                             </button>
                                             <div id="drop-{{ $p->nik }}" class="dropdown-menu-content">
-                                                <button type="button" onclick="openEditModal('{{ $p->nik }}', '{{ addslashes($p->name) }}', '{{ $p->role }}', '{{ $p->status }}')">
+                                                <button type="button" onclick="openEditModal('{{ $p->nik }}', '{{ addslashes($p->name) }}', '{{ addslashes($p->jabatan ?? '') }}', '{{ $p->jenis_kepegawaian ?? '' }}', '{{ $p->role }}', '{{ $p->status }}')">
                                                     <i class="fa-solid fa-pen-to-square"></i> Edit
                                                 </button>
                                                 <form action="{{ route('admin.participants.delete', $p->nik) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data peserta ini? Semua riwayat kehadirannya juga akan dihapus.')">
@@ -350,6 +379,23 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label" for="edit_jabatan">Jabatan</label>
+                <input type="text" name="jabatan" id="edit_jabatan" class="form-control" placeholder="Contoh: Guru Mapel, Kepala TU">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="edit_jenis_kepegawaian">Jenis Kepegawaian</label>
+                <select name="jenis_kepegawaian" id="edit_jenis_kepegawaian" class="form-control form-select">
+                    <option value="">— Pilih —</option>
+                    <option value="asn">ASN</option>
+                    <option value="pns">PNS</option>
+                    <option value="p3k">P3K</option>
+                    <option value="honorer">Honorer</option>
+                    <option value="mahasiswa">Mahasiswa (PPL/PPG)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label" for="edit_role">Peran / Kategori</label>
                 <select name="role" id="edit_role" class="form-control form-select" required>
                     <option value="Guru">Guru</option>
@@ -379,9 +425,11 @@
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     
-    function openEditModal(nik, name, role, status) {
+    function openEditModal(nik, name, jabatan, jenis_kepegawaian, role, status) {
         document.getElementById('edit_nik').value = nik;
         document.getElementById('edit_name').value = name;
+        document.getElementById('edit_jabatan').value = jabatan;
+        document.getElementById('edit_jenis_kepegawaian').value = jenis_kepegawaian;
         document.getElementById('edit_role').value = role;
         document.getElementById('edit_status').value = status;
         

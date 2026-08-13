@@ -122,20 +122,20 @@
 
                 <div class="form-group">
                     <label class="form-label" for="type">Tipe Waktu</label>
-                    <select name="type" id="type" class="form-control form-select" required>
+                    <select name="type" id="type" class="form-control form-select" required onchange="autoFillTime(this.value)">
                         <option value="pagi">Pagi (Sign-in)</option>
                         <option value="sore">Sore (Sign-out)</option>
                     </select>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="time-grid-cols">
                     <div class="form-group">
                         <label class="form-label" for="start_time">Jam Mulai</label>
-                        <input type="time" name="start_time" id="start_time" class="form-control" placeholder="06:20" required>
+                        <input type="time" name="start_time" id="start_time" class="form-control" value="06:20" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="end_time">Jam Selesai</label>
-                        <input type="time" name="end_time" id="end_time" class="form-control" placeholder="06:40" required>
+                        <input type="time" name="end_time" id="end_time" class="form-control" value="06:40" required>
                     </div>
                 </div>
 
@@ -227,6 +227,26 @@
 </main>
 
 <script>
+    // Auto-fill default times based on session type
+    const defaultTimes = {
+        pagi: { start: '06:20', end: '06:40' },
+        sore: { start: '14:50', end: '15:20' },
+    };
+
+    function autoFillTime(type) {
+        const times = defaultTimes[type];
+        if (times) {
+            document.getElementById('start_time').value = times.start;
+            document.getElementById('end_time').value = times.end;
+        }
+    }
+
+    // Set default times on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const typeSelect = document.getElementById('type');
+        if (typeSelect) autoFillTime(typeSelect.value);
+    });
+
     function copyShareLink(link) {
         navigator.clipboard.writeText(link).then(() => {
             alert('Link absensi berhasil disalin ke clipboard!\n' + link);

@@ -18,6 +18,8 @@ class Participant extends Model
         'nik',
         'name',
         'role',
+        'jabatan',
+        'jenis_kepegawaian',
         'status',
     ];
 

@@ -51,8 +51,6 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'nik' => 'required|string',
-            'name' => 'required|string|max:255',
-            'role' => 'required|in:Guru,TU,PPL,PPG',
             'code' => 'required|string|size:5',
             'signature' => 'required|string', // Base64 signature
             'photo' => 'nullable|string', // Optional Base64 selfie
@@ -63,25 +61,14 @@ class AttendanceController extends Controller
         $code = strtoupper($request->input('code'));
         $nik = $request->input('nik');
 
-        // 1. Find or Create the participant in master data
+        // 1. Find the participant in master data
         $participant = Participant::where('nik', $nik)->first();
-        if ($participant) {
-            if ($participant->status !== 'aktif') {
-                return back()->withErrors(['nik' => 'Status NIK Anda saat ini nonaktif. Silakan hubungi admin.'])->withInput();
-            }
-            // Update name and role in case of updates/corrections
-            $participant->update([
-                'name' => $request->input('name'),
-                'role' => $request->input('role'),
-            ]);
-        } else {
-            // Self-register to master data on-the-fly
-            $participant = Participant::create([
-                'nik' => $nik,
-                'name' => $request->input('name'),
-                'role' => $request->input('role'),
-                'status' => 'aktif',
-            ]);
+        if (!$participant) {
+            return back()->withErrors(['nik' => 'NIK Anda belum terdaftar. Silakan hubungi Admin untuk didaftarkan.'])->withInput();
+        }
+
+        if ($participant->status !== 'aktif') {
+            return back()->withErrors(['nik' => 'Status NIK Anda saat ini nonaktif. Silakan hubungi admin.'])->withInput();
         }
 
         // 2. Find the session by code
