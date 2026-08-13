@@ -5,6 +5,9 @@
 @section('body-class', 'admin-layout')
 
 @section('content')
+<!-- Leaflet Map Assets CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
     /* Modal Backdrop for Image Zoom */
     .modal-backdrop {
@@ -177,12 +180,12 @@
                                         {{ $attendance->latitude }}, {{ $attendance->longitude }}
                                     </div>
                                     <div style="margin-top: 0.25rem;">
-                                        <a href="https://www.google.com/maps/place/{{ $attendance->latitude }},{{ $attendance->longitude }}" 
-                                           target="_blank" 
-                                           class="btn btn-secondary btn-sm" 
-                                           style="padding: 0.2rem 0.5rem; font-size: 0.75rem; border-color: rgba(99,102,241,0.2);">
-                                            <i class="fa-solid fa-map-location-dot" style="color: var(--accent-indigo)"></i> Buka Peta
-                                        </a>
+                                        <button type="button"
+                                                class="btn btn-secondary btn-sm" 
+                                                style="padding: 0.2rem 0.5rem; font-size: 0.75rem; border-color: rgba(99,102,241,0.2);"
+                                                onclick="showMapModal({{ $attendance->latitude }}, {{ $attendance->longitude }}, '{{ addslashes($attendance->participant->name ?? $attendance->participant_nik) }}')">
+                                            <i class="fa-solid fa-map-location-dot" style="color: var(--accent-indigo)"></i> Lihat Peta
+                                        </button>
                                     </div>
                                 @else
                                     <span style="color: var(--text-light); font-size: 0.85rem;">Tidak terekam</span>
@@ -226,10 +229,23 @@
     </div>
 </div>
 
+<!-- Leaflet Map Modal Overlay -->
+<div id="mapModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 600px; width: 90%;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid var(--input-border); padding-bottom: 0.5rem;">
+            <h3 id="mapModalTitle" style="font-size: 1.15rem; color: var(--text-main);">Lokasi Presensi</h3>
+            <button type="button" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);" onclick="closeMapModal()">&times;</button>
+        </div>
+        <div id="mapContainer" style="height: 350px; width: 100%; border: 1.5px solid var(--input-border); border-radius: var(--radius-md); background: #eee; z-index: 1;"></div>
+        <button type="button" class="btn btn-secondary btn-block" style="margin-top: 1rem;" onclick="closeMapModal()">Tutup</button>
+    </div>
+</div>
+
 <script>
     const imageModal = document.getElementById('imageModal');
     const imageModalTarget = document.getElementById('imageModalTarget');
     const imageModalTitle = document.getElementById('imageModalTitle');
+    const mapModal = document.getElementById('mapModal');
 
     function showImageZoom(src, title) {
         imageModalTarget.src = src;
@@ -242,10 +258,48 @@
         imageModalTarget.src = '';
     }
 
-    // Close modal when clicking outside content area
+    // Leaflet map initialization
+    let leafletMap = null;
+    let mapMarker = null;
+
+    function showMapModal(lat, lon, name) {
+        mapModal.style.display = 'flex';
+        
+        // Timeout to ensure the container DOM is rendered before Leaflet runs
+        setTimeout(() => {
+            if (leafletMap) {
+                leafletMap.remove();
+            }
+            
+            leafletMap = L.map('mapContainer').setView([lat, lon], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(leafletMap);
+            
+            mapMarker = L.marker([lat, lon]).addTo(leafletMap)
+                .bindPopup(`<b>${name}</b><br>Lokasi Presensi`)
+                .openPopup();
+                
+            leafletMap.invalidateSize();
+        }, 150);
+    }
+
+    function closeMapModal() {
+        mapModal.style.display = 'none';
+        if (leafletMap) {
+            leafletMap.remove();
+            leafletMap = null;
+        }
+    }
+
+    // Close modals when clicking outside content area
     window.addEventListener('click', (e) => {
         if (e.target === imageModal) {
             closeImageModal();
+        }
+        if (e.target === mapModal) {
+            closeMapModal();
         }
     });
 </script>
