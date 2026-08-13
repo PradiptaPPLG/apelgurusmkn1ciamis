@@ -9,6 +9,17 @@ Route::get('/', function () {
     return redirect()->route('apel.index');
 });
 
+Route::get('/api/participant/{nik}', function ($nik) {
+    $participant = \App\Models\Participant::where('nik', $nik)->first();
+    if ($participant) {
+        return response()->json([
+            'name' => $participant->name,
+            'role' => $participant->role
+        ]);
+    }
+    return response()->json(['message' => 'Not found'], 404);
+});
+
 Route::get('/apel/{code?}', [AttendanceController::class, 'index'])->name('apel.index');
 Route::post('/apel/submit', [AttendanceController::class, 'submit'])->name('apel.submit');
 Route::get('/apel-sukses', [AttendanceController::class, 'success'])->name('apel.success');

@@ -87,7 +87,7 @@
 
         <!-- NIK / NIP / ID -->
         <div class="form-group">
-            <label class="form-label" for="nik">NIK / NIP / ID Peserta</label>
+            <label class="form-label" for="nik">NIK / NIP / ID Lainnya</label>
             <input type="text" 
                    name="nik" 
                    id="nik" 
@@ -95,6 +95,29 @@
                    placeholder="Masukkan NIK Anda" 
                    value="{{ old('nik') }}" 
                    required>
+        </div>
+
+        <!-- Nama Lengkap -->
+        <div class="form-group">
+            <label class="form-label" for="name">Nama Lengkap</label>
+            <input type="text" 
+                   name="name" 
+                   id="name" 
+                   class="form-control" 
+                   placeholder="Masukkan Nama Lengkap" 
+                   value="{{ old('name') }}" 
+                   required>
+        </div>
+
+        <!-- Peran / Kategori -->
+        <div class="form-group">
+            <label class="form-label" for="role">Peran / Kategori</label>
+            <select name="role" id="role" class="form-control form-select" required>
+                <option value="Guru" {{ old('role') === 'Guru' ? 'selected' : '' }}>Guru</option>
+                <option value="TU" {{ old('role') === 'TU' ? 'selected' : '' }}>Staf TU</option>
+                <option value="PPL" {{ old('role') === 'PPL' ? 'selected' : '' }}>PPL</option>
+                <option value="PPG" {{ old('role') === 'PPG' ? 'selected' : '' }}>PPG</option>
+            </select>
         </div>
 
         <!-- Camera Selfie Capture (Optional) -->
@@ -153,6 +176,10 @@
     const geoStatus = document.getElementById('geoStatus');
     const latInput = document.getElementById('latitude');
     const lonInput = document.getElementById('longitude');
+    
+    // NIK lookup elements
+    const nameInput = document.getElementById('name');
+    const roleInput = document.getElementById('role');
 
     function getGPSLocation() {
         if (!navigator.geolocation) {
@@ -187,6 +214,30 @@
         getGPSLocation();
         setupSignaturePad();
         setupWebcam();
+        
+        // Auto-fetch name and role when NIK loses focus (blur)
+        const nikInput = document.getElementById('nik');
+        if (nikInput) {
+            nikInput.addEventListener('blur', function() {
+                const nik = this.value.trim();
+                if (nik.length > 2) {
+                    fetch(`/api/participant/${encodeURIComponent(nik)}`)
+                        .then(response => {
+                            if (response.ok) return response.json();
+                            throw new Error('Not found');
+                        })
+                        .then(data => {
+                            if (data && data.name) {
+                                if (nameInput) nameInput.value = data.name;
+                                if (roleInput) roleInput.value = data.role;
+                            }
+                        })
+                        .catch(err => {
+                            // Suppress errors, let user register on-the-fly
+                        });
+                }
+            });
+        }
     });
 
 
