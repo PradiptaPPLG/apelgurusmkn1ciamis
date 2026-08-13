@@ -19,7 +19,7 @@ class AttendanceController extends Controller
         $todayStr = $now->format('Y-m-d');
         
         // Find any session active today
-        $activeSessions = ApelSession::where('date', $todayStr)->get();
+        $activeSessions = ApelSession::whereDate('date', $todayStr)->get();
         
         // Filter sessions that are currently open
         $openSession = $activeSessions->filter(function($session) {
@@ -30,7 +30,7 @@ class AttendanceController extends Controller
         $urlSession = null;
         if ($code) {
             $urlSession = ApelSession::where('code', strtoupper($code))
-                ->where('date', $todayStr)
+                ->whereDate('date', $todayStr)
                 ->first();
         }
 
@@ -86,7 +86,7 @@ class AttendanceController extends Controller
 
         // 2. Find the session by code
         $session = ApelSession::where('code', $code)
-            ->where('date', Carbon::today()->format('Y-m-d'))
+            ->whereDate('date', Carbon::today()->format('Y-m-d'))
             ->first();
 
         if (!$session) {
