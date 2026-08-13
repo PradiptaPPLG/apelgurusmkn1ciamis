@@ -805,6 +805,10 @@ a:hover {
         grid-column: 1 / -1; /* Search bar full width */
     }
 
+    .filter-form-grid > div:last-child {
+        grid-column: 1 / -1; /* Action buttons full width */
+    }
+
     /* Stats grid — 1 column on very small screens */
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

@@ -197,19 +197,23 @@
                                     <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: var(--accent-teal);">
                                         {{ $session->attendances_count }}
                                     </td>
-                                    <td style="text-align: right;">
-                                        <div style="display: inline-flex; gap: 0.35rem;">
-                                            <a href="{{ route('admin.sessions.detail', $session->id) }}" class="btn btn-primary btn-sm" style="padding: 0.4rem 0.6rem;">
-                                                <i class="fa-solid fa-eye"></i> Detail
-                                            </a>
-                                            
-                                            <form action="{{ route('admin.sessions.delete', $session->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus sesi apel ini dan semua data kehadiran di dalamnya?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.4rem 0.6rem;">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
+                                    <td style="text-align: right; overflow: visible;">
+                                        <div class="dropdown-kebab">
+                                            <button class="kebab-btn" onclick="toggleDropdown(event, 'drop-{{ $session->id }}')" title="Aksi">
+                                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                            </button>
+                                            <div id="drop-{{ $session->id }}" class="dropdown-menu-content">
+                                                <a href="{{ route('admin.sessions.detail', $session->id) }}">
+                                                    <i class="fa-solid fa-eye"></i> Detail
+                                                </a>
+                                                <form action="{{ route('admin.sessions.delete', $session->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus sesi apel ini dan semua data kehadiran di dalamnya?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="delete-btn">
+                                                        <i class="fa-solid fa-trash"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -254,5 +258,29 @@
             alert('Gagal menyalin link: ' + err);
         });
     }
+
+    // Toggle dropdown function
+    function toggleDropdown(event, id) {
+        event.stopPropagation();
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-menu-content').forEach(el => {
+            if (el.id !== id) {
+                el.style.display = 'none';
+            }
+        });
+        
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    // Close all dropdowns when clicking outside
+    window.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu-content').forEach(el => {
+            el.style.display = 'none';
+        });
+    });
 </script>
 @endsection
