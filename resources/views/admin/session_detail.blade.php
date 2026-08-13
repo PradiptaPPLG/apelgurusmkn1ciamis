@@ -17,7 +17,9 @@
         background: rgba(15, 23, 42, 0.7);
         backdrop-filter: blur(8px);
         z-index: 999;
-        align-items: center;
+        overflow-y: auto;
+        padding: 2rem 0;
+        align-items: flex-start;
         justify-content: center;
         animation: fadeIn 0.3s ease-out;
     }
@@ -31,6 +33,7 @@
         padding: 2rem;
         box-shadow: var(--card-shadow);
         text-align: center;
+        margin: auto;
         animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 

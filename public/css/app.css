@@ -789,10 +789,11 @@ a:hover {
         padding: 1rem;
     }
 
-    /* Panel split — single column stacked */
+    /* Panel split — table/list on top, forms below on mobile */
     .panel-split {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 1.5rem;
     }
 
     /* Filter search form — stack rows */
