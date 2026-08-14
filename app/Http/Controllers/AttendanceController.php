@@ -56,19 +56,24 @@ class AttendanceController extends Controller
             'photo' => 'nullable|string', // Optional Base64 selfie
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'location_name' => 'nullable|string',
         ]);
 
         $code = strtoupper($request->input('code'));
         $nik = $request->input('nik');
 
-        // 1. Find the participant in master data
-        $participant = Participant::where('nik', $nik)->first();
+        // 1. Find the participant in master data by NIK, NIP, or Other ID
+        $participant = Participant::where('nik', $nik)
+            ->orWhere('nip', $nik)
+            ->orWhere('other_id', $nik)
+            ->first();
+
         if (!$participant) {
-            return back()->withErrors(['nik' => 'NIK Anda belum terdaftar. Silakan hubungi Admin untuk didaftarkan.'])->withInput();
+            return back()->withErrors(['nik' => 'NIK / NIP / ID Anda salah dan tidak ditemukan.'])->withInput();
         }
 
         if ($participant->status !== 'aktif') {
-            return back()->withErrors(['nik' => 'Status NIK Anda saat ini nonaktif. Silakan hubungi admin.'])->withInput();
+            return back()->withErrors(['nik' => 'Status NIK / NIP / ID Anda saat ini nonaktif. Silakan hubungi admin.'])->withInput();
         }
 
         // 2. Find the session by code
@@ -87,9 +92,9 @@ class AttendanceController extends Controller
             return back()->withErrors(['code' => "Sesi apel ({$session->title}) saat ini sudah ditutup. Jam operasional: {$startTime} - {$endTime}."])->withInput();
         }
 
-        // 4. Check if already checked in
+        // 4. Check if already checked in using the primary key (NIK)
         $exists = Attendance::where('apel_session_id', $session->id)
-            ->where('participant_nik', $nik)
+            ->where('participant_nik', $participant->nik)
             ->exists();
 
         if ($exists) {
@@ -99,11 +104,12 @@ class AttendanceController extends Controller
         // 5. Save attendance
         Attendance::create([
             'apel_session_id' => $session->id,
-            'participant_nik' => $nik,
+            'participant_nik' => $participant->nik, // Store actual primary key NIK
             'signature' => $request->input('signature'),
             'photo' => $request->input('photo'),
             'latitude' => $request->input('latitude'),
             'longitude' => $request->input('longitude'),
+            'location_name' => $request->input('location_name'),
             'signed_in_at' => Carbon::now(),
         ]);
 

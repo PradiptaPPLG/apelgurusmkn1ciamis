@@ -10,7 +10,10 @@ Route::get('/', function () {
 });
 
 Route::get('/api/participant/{nik}', function ($nik) {
-    $participant = \App\Models\Participant::where('nik', $nik)->first();
+    $participant = \App\Models\Participant::where('nik', $nik)
+        ->orWhere('nip', $nik)
+        ->orWhere('other_id', $nik)
+        ->first();
     if ($participant) {
         return response()->json([
             'name' => $participant->name,

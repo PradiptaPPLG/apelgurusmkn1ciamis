@@ -16,6 +16,8 @@ class Participant extends Model
 
     protected $fillable = [
         'nik',
+        'nip',
+        'other_id',
         'name',
         'role',
         'jabatan',

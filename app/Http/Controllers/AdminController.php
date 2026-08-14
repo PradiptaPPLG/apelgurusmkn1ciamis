@@ -136,6 +136,8 @@ class AdminController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nik', 'like', "%{$search}%")
+                  ->orWhere('nip', 'like', "%{$search}%")
+                  ->orWhere('other_id', 'like', "%{$search}%")
                   ->orWhere('name', 'like', "%{$search}%");
             });
         }
@@ -160,6 +162,8 @@ class AdminController extends Controller
     {
         $request->validate([
             'nik' => 'required|string|unique:participants,nik',
+            'nip' => 'nullable|string|unique:participants,nip',
+            'other_id' => 'nullable|string|unique:participants,other_id',
             'name' => 'required|string|max:255',
             'jabatan' => 'nullable|string|max:255',
             'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
@@ -167,7 +171,7 @@ class AdminController extends Controller
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        Participant::create($request->only(['nik', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
+        Participant::create($request->only(['nik', 'nip', 'other_id', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
 
         return redirect()->route('admin.participants')->with('success', 'Data Guru/Peserta berhasil ditambahkan.');
     }
@@ -181,6 +185,8 @@ class AdminController extends Controller
 
         $request->validate([
             'nik' => 'required|string|unique:participants,nik,' . $nik . ',nik',
+            'nip' => 'nullable|string|unique:participants,nip,' . $nik . ',nik',
+            'other_id' => 'nullable|string|unique:participants,other_id,' . $nik . ',nik',
             'name' => 'required|string|max:255',
             'jabatan' => 'nullable|string|max:255',
             'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
@@ -188,7 +194,7 @@ class AdminController extends Controller
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        $participant->update($request->only(['nik', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
+        $participant->update($request->only(['nik', 'nip', 'other_id', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
 
         return redirect()->route('admin.participants')->with('success', 'Data Guru/Peserta berhasil diperbarui.');
     }
@@ -239,7 +245,7 @@ class AdminController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = ['No', 'NIK', 'Nama', 'Jabatan', 'Jenis Kepegawaian', 'Peran', 'Waktu Hadir', 'Latitude', 'Longitude'];
+        $columns = ['No', 'NIK', 'NIP', 'ID Lainnya', 'Nama', 'Jabatan', 'Jenis Kepegawaian', 'Peran', 'Waktu Hadir', 'Latitude', 'Longitude', 'Lokasi Presisi'];
 
         $callback = function() use($attendances, $columns) {
             $file = fopen('php://output', 'w');
@@ -253,6 +259,8 @@ class AdminController extends Controller
                 $row = [
                     $idx + 1,
                     $attendance->participant_nik,
+                    $attendance->participant->nip ?? 'N/A',
+                    $attendance->participant->other_id ?? 'N/A',
                     $attendance->participant->name ?? 'N/A',
                     $attendance->participant->jabatan ?? 'N/A',
                     $attendance->participant->jenis_kepegawaian ?? 'N/A',
@@ -260,6 +268,7 @@ class AdminController extends Controller
                     $attendance->signed_in_at->format('Y-m-d H:i:s'),
                     $attendance->latitude ?? 'N/A',
                     $attendance->longitude ?? 'N/A',
+                    $attendance->location_name ?? 'N/A',
                 ];
 
                 fputcsv($file, $row, ';');

@@ -108,8 +108,18 @@
                 @csrf
                 
                 <div class="form-group">
-                    <label class="form-label" for="nik">NIK / NIP / ID (Primary Key)</label>
+                    <label class="form-label" for="nik">NIK (Primary Key)</label>
                     <input type="text" name="nik" id="nik" class="form-control" placeholder="Masukkan NIK unik" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="nip">NIP (Secondary)</label>
+                    <input type="text" name="nip" id="nip" class="form-control" placeholder="Masukkan NIP (jika ada)">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="other_id">ID Lainnya (Secondary)</label>
+                    <input type="text" name="other_id" id="other_id" class="form-control" placeholder="Masukkan ID custom (jika ada)">
                 </div>
 
                 <div class="form-group">
@@ -225,8 +235,14 @@
                         <tbody>
                             @foreach ($participants as $p)
                                 <tr>
-                                    <td style="font-family: monospace; font-weight: 700; color: var(--text-main);">
-                                        {{ $p->nik }}
+                                    <td style="font-family: monospace; color: var(--text-main);">
+                                        <div style="font-weight: 700;">{{ $p->nik }}</div>
+                                        @if($p->nip)
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">NIP: {{ $p->nip }}</div>
+                                        @endif
+                                        @if($p->other_id)
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">ID: {{ $p->other_id }}</div>
+                                        @endif
                                     </td>
                                     <td>
                                         <div style="font-weight: 600; color: var(--text-main);">{{ $p->name }}</div>
@@ -255,7 +271,7 @@
                                                 <i class="fa-solid fa-ellipsis-vertical"></i>
                                             </button>
                                             <div id="drop-{{ $p->nik }}" class="dropdown-menu-content">
-                                                <button type="button" onclick="openEditModal('{{ $p->nik }}', '{{ addslashes($p->name) }}', '{{ addslashes($p->jabatan ?? '') }}', '{{ $p->jenis_kepegawaian ?? '' }}', '{{ $p->role }}', '{{ $p->status }}')">
+                                                <button type="button" onclick="openEditModal('{{ $p->nik }}', '{{ $p->nip ?? '' }}', '{{ $p->other_id ?? '' }}', '{{ addslashes($p->name) }}', '{{ addslashes($p->jabatan ?? '') }}', '{{ $p->jenis_kepegawaian ?? '' }}', '{{ $p->role }}', '{{ $p->status }}')">
                                                     <i class="fa-solid fa-pen-to-square"></i> Edit
                                                 </button>
                                                 <form action="{{ route('admin.participants.delete', $p->nik) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data peserta ini? Semua riwayat kehadirannya juga akan dihapus.')">
@@ -295,8 +311,18 @@
             @method('PUT')
             
             <div class="form-group">
-                <label class="form-label" for="edit_nik">NIK / NIP / ID</label>
+                <label class="form-label" for="edit_nik">NIK (Primary Key)</label>
                 <input type="text" name="nik" id="edit_nik" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="edit_nip">NIP (Secondary)</label>
+                <input type="text" name="nip" id="edit_nip" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="edit_other_id">ID Lainnya (Secondary)</label>
+                <input type="text" name="other_id" id="edit_other_id" class="form-control">
             </div>
 
             <div class="form-group">
@@ -351,8 +377,10 @@
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     
-    function openEditModal(nik, name, jabatan, jenis_kepegawaian, role, status) {
+    function openEditModal(nik, nip, other_id, name, jabatan, jenis_kepegawaian, role, status) {
         document.getElementById('edit_nik').value = nik;
+        document.getElementById('edit_nip').value = nip;
+        document.getElementById('edit_other_id').value = other_id;
         document.getElementById('edit_name').value = name;
         document.getElementById('edit_jabatan').value = jabatan;
         document.getElementById('edit_jenis_kepegawaian').value = jenis_kepegawaian;

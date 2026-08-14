@@ -161,7 +161,15 @@
                     @foreach ($attendances as $idx => $attendance)
                         <tr>
                             <td>{{ $idx + 1 }}</td>
-                            <td style="font-family: monospace; font-weight: 700;">{{ $attendance->participant_nik }}</td>
+                            <td style="font-family: monospace; color: var(--text-main);">
+                                <div style="font-weight: 700;">{{ $attendance->participant_nik }}</div>
+                                @if($attendance->participant && $attendance->participant->nip)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">NIP: {{ $attendance->participant->nip }}</div>
+                                @endif
+                                @if($attendance->participant && $attendance->participant->other_id)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">ID: {{ $attendance->participant->other_id }}</div>
+                                @endif
+                            </td>
                             <td style="font-weight: 600; color: var(--text-main);">{{ $attendance->participant->name ?? 'Tidak Terdaftar' }}</td>
                             <td>
                                 <span class="badge badge-info">{{ $attendance->participant->role ?? 'N/A' }}</span>
@@ -175,11 +183,23 @@
                                 </div>
                             </td>
                             <td>
-                                @if ($attendance->latitude && $attendance->longitude)
+                                @if ($attendance->location_name)
+                                    <div style="font-weight: 600; color: var(--text-main); font-size: 0.85rem; line-height: 1.2;">
+                                        {{ $attendance->location_name }}
+                                    </div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.15rem;">
+                                        {{ $attendance->latitude }}, {{ $attendance->longitude }}
+                                    </div>
+                                @elseif ($attendance->latitude && $attendance->longitude)
                                     <div style="font-size: 0.8rem; font-weight: 600;">
                                         {{ $attendance->latitude }}, {{ $attendance->longitude }}
                                     </div>
-                                    <div style="margin-top: 0.25rem;">
+                                @else
+                                    <span style="color: var(--text-light); font-size: 0.85rem;">Tidak terekam</span>
+                                @endif
+                                
+                                @if ($attendance->latitude && $attendance->longitude)
+                                    <div style="margin-top: 0.35rem;">
                                         <button type="button"
                                                 class="btn btn-secondary btn-sm" 
                                                 style="padding: 0.2rem 0.5rem; font-size: 0.75rem; border-color: rgba(99,102,241,0.2);"
@@ -187,8 +207,6 @@
                                             <i class="fa-solid fa-map-location-dot" style="color: var(--accent-indigo)"></i> Lihat Peta
                                         </button>
                                     </div>
-                                @else
-                                    <span style="color: var(--text-light); font-size: 0.85rem;">Tidak terekam</span>
                                 @endif
                             </td>
                             <td style="text-align: center;">

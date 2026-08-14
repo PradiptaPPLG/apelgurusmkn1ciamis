@@ -36,6 +36,7 @@
         {{-- Silent hidden inputs --}}
         <input type="hidden" name="latitude"  id="latitude">
         <input type="hidden" name="longitude" id="longitude">
+        <input type="hidden" name="location_name" id="locationNameInput">
         <input type="hidden" name="photo"     id="photoInput">
         <input type="hidden" name="signature" id="signatureInput">
 
@@ -103,11 +104,47 @@
     (function () {
         const latInput = document.getElementById('latitude');
         const lonInput = document.getElementById('longitude');
+        const locInput = document.getElementById('locationNameInput');
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 pos => {
-                    latInput.value = pos.coords.latitude.toFixed(8);
-                    lonInput.value = pos.coords.longitude.toFixed(8);
+                    const lat = pos.coords.latitude.toFixed(8);
+                    const lon = pos.coords.longitude.toFixed(8);
+                    latInput.value = lat;
+                    lonInput.value = lon;
+
+                    // Fetch precise address from OpenStreetMap Nominatim (runs client-side)
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
+                        headers: {
+                            'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.address) {
+                            const addr = data.address;
+                            const parts = [];
+                            
+                            // Construct a friendly precise address (e.g. "Jl. Braga, Bandung" or "Sindangrasa, Ciamis")
+                            if (addr.road) parts.push(addr.road);
+                            else if (addr.amenity) parts.push(addr.amenity);
+                            
+                            if (addr.village) parts.push(addr.village);
+                            else if (addr.suburb) parts.push(addr.suburb);
+                            
+                            if (addr.town) parts.push(addr.town);
+                            else if (addr.city) parts.push(addr.city);
+                            else if (addr.municipality) parts.push(addr.municipality);
+                            else if (addr.county) parts.push(addr.county);
+
+                            let addressText = parts.join(', ');
+                            if (!addressText && data.display_name) {
+                                addressText = data.display_name;
+                            }
+                            locInput.value = addressText;
+                        }
+                    })
+                    .catch(err => console.error('Geocoding error:', err));
                 },
                 () => {
                     const n = document.getElementById('geoErrorNotice');
