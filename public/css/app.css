@@ -588,13 +588,109 @@ a:hover {
 
 /* Pagination */
 .pagination-wrapper {
-    margin-top: 1.25rem;
+    margin-top: 1.5rem;
+    width: 100%;
 }
 
 .pagination-wrapper nav {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid var(--card-border);
+}
+
+/* Hide duplicate mobile-only text pagination block */
+.pagination-wrapper nav > div:first-child {
+    display: none !important;
+}
+
+/* Structure desktop pagination container */
+.pagination-wrapper nav > div:last-child {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Results text (e.g. "Showing 1 to 15 of 17 results") */
+.pagination-wrapper nav > div:last-child p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Pagination buttons container */
+.pagination-wrapper nav span.relative.z-0 {
+    display: inline-flex;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    overflow: hidden;
+}
+
+/* Style each pagination button link/span */
+.pagination-wrapper nav span.relative.z-0 a,
+.pagination-wrapper nav span.relative.z-0 span[aria-current="page"],
+.pagination-wrapper nav span.relative.z-0 span[disabled],
+.pagination-wrapper nav span.relative.z-0 span.relative {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-right: 1px solid var(--card-border);
+    background: #ffffff;
+    transition: var(--transition-smooth);
+    text-decoration: none;
+}
+
+.pagination-wrapper nav span.relative.z-0 a:last-child,
+.pagination-wrapper nav span.relative.z-0 span:last-child {
+    border-right: none;
+}
+
+.pagination-wrapper nav span.relative.z-0 a:hover {
+    background-color: #f1f5f9;
+    color: var(--text-main);
+}
+
+.pagination-wrapper nav span.relative.z-0 span[aria-current="page"] {
+    background-color: var(--accent-indigo);
+    color: #ffffff;
+    border-color: var(--accent-indigo);
+}
+
+.pagination-wrapper nav span[aria-disabled="true"] {
+    color: #cbd5e1;
+    cursor: not-allowed;
+    background-color: #f8fafc;
+}
+
+/* Size geocoding/navigation SVGs in pagination */
+.pagination-wrapper nav svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@media (max-width: 640px) {
+    .pagination-wrapper nav > div:last-child {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
 }
 
 /* Custom modal or inline modal form */

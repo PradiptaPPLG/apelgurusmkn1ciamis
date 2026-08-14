@@ -125,9 +125,23 @@
                             const addr = data.address;
                             const parts = [];
                             
-                            // Construct a friendly precise address (e.g. "Jl. Braga, Bandung" or "Sindangrasa, Ciamis")
-                            if (addr.road) parts.push(addr.road);
-                            else if (addr.amenity) parts.push(addr.amenity);
+                            // Extract place/building name if available
+                            const placeKeys = ['amenity', 'school', 'college', 'university', 'building', 'office', 'shop', 'tourism', 'leisure', 'historic'];
+                            let placeName = '';
+                            for (const key of placeKeys) {
+                                if (addr[key]) {
+                                    placeName = addr[key];
+                                    break;
+                                }
+                            }
+
+                            const parts = [];
+                            if (placeName) {
+                                parts.push(placeName);
+                            }
+                            if (addr.road) {
+                                parts.push(addr.road);
+                            }
                             
                             if (addr.village) parts.push(addr.village);
                             else if (addr.suburb) parts.push(addr.suburb);
