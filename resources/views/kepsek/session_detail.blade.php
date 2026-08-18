@@ -66,13 +66,14 @@
                         <i class="fa-solid fa-download"></i> Unduh Laporan
                         <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;"></i>
                     </button>
-                    <div id="exportDropdownMenu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);box-shadow:var(--card-shadow);min-width:200px;z-index:100;overflow:hidden;">
+                    <div id="exportDropdownMenu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);box-shadow:var(--card-shadow);min-width:220px;z-index:100;overflow:hidden;">
                         @php $exportParams = array_filter(request()->only(['search','jabatan','date_from','date_to'])); @endphp
-                        <a href="{{ route('kepsek.sessions.export.pdf', array_merge(['id' => $session->id], $exportParams)) }}"
+                        <a href="{{ route('kepsek.sessions.preview', array_merge(['id' => $session->id], $exportParams)) }}"
+                           target="_blank"
                            style="display:flex;align-items:center;gap:0.65rem;padding:0.7rem 1rem;color:var(--text-main);text-decoration:none;font-size:0.9rem;"
                            onmouseover="this.style.background='rgba(99,102,241,0.07)'" onmouseout="this.style.background='transparent'">
-                            <i class="fa-solid fa-file-pdf" style="color:#e53e3e;width:16px;"></i>
-                            <div><div style="font-weight:600;">Unduh PDF</div><div style="font-size:0.75rem;color:var(--text-muted);">Format kop sekolah resmi</div></div>
+                            <i class="fa-solid fa-eye" style="color:#7c3aed;width:16px;"></i>
+                            <div><div style="font-weight:600;">Pratinjau / Cetak PDF</div><div style="font-size:0.75rem;color:var(--text-muted);">Buka pratinjau &bull; Ctrl+P untuk simpan PDF</div></div>
                         </a>
                         <div style="height:1px;background:var(--card-border);margin:0 0.5rem;"></div>
                         <a href="{{ route('kepsek.sessions.export.excel', array_merge(['id' => $session->id], $exportParams)) }}"
@@ -86,16 +87,16 @@
             </div>
 
             {{-- Filter Bar --}}
-            <form method="GET" action="{{ route('kepsek.sessions.detail', $session->id) }}"
+            <form method="GET" action="{{ route('kepsek.sessions.detail', $session->id) }}" id="filterForm"
                   style="background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
                 <div style="flex:1;min-width:160px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">🔍 Cari Nama</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama..."
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama</label>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama lalu Enter..."
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="min-width:150px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">📂 Jabatan</label>
-                    <select name="jabatan" style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-briefcase"></i> Jabatan</label>
+                    <select name="jabatan" onchange="this.form.submit()" style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                         <option value="">Semua Jabatan</option>
                         @foreach(['Guru','TU','PPL','PPG','Wali Kelas'] as $j)
                             <option value="{{ $j }}" {{ request('jabatan') === $j ? 'selected' : '' }}>{{ $j }}</option>
@@ -103,22 +104,22 @@
                     </select>
                 </div>
                 <div style="min-width:140px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">📅 Dari Tanggal</label>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}"
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Dari Tanggal</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" onchange="this.form.submit()"
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="min-width:140px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">📅 Sampai Tanggal</label>
-                    <input type="date" name="date_to" value="{{ request('date_to') }}"
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Sampai Tanggal</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" onchange="this.form.submit()"
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:flex-end;">
                     <button type="submit" class="btn btn-primary btn-sm" style="height:38px;padding:0 1rem;">
-                        <i class="fa-solid fa-filter"></i> Filter
+                        <i class="fa-solid fa-filter"></i> Saring
                     </button>
                     @if(request()->hasAny(['search','jabatan','date_from','date_to']))
-                    <a href="{{ route('kepsek.sessions.detail', $session->id) }}" class="btn btn-secondary btn-sm" style="height:38px;padding:0 1rem;">
-                        <i class="fa-solid fa-xmark"></i> Reset
+                    <a href="{{ route('kepsek.sessions.detail', $session->id) }}" class="btn btn-secondary btn-sm" style="height:38px;padding:0 1rem;display:inline-flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-rotate-left"></i> Atur Ulang
                     </a>
                     @endif
                 </div>

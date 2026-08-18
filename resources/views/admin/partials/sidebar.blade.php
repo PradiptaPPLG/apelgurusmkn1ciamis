@@ -18,7 +18,7 @@
 
     {{-- Admin info --}}
     <div class="sidebar-user">
-        <div class="sidebar-user-avatar">
+        <div class="sidebar-user-avatar" style="background: rgba(99, 102, 241, 0.1); color: #4f46e5;">
             <i class="fa-solid fa-user-shield"></i>
         </div>
         <div class="sidebar-user-info">

@@ -30,17 +30,17 @@
             </div>
 
             {{-- Filter Bar --}}
-            <form method="GET" action="{{ route('kepsek.participants') }}"
+            <form method="GET" action="{{ route('kepsek.participants') }}" id="filterForm"
                   style="background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
                 <div style="flex:1;min-width:180px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">🔍 Cari</label>
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-magnifying-glass"></i> Cari</label>
                     <input type="text" name="search" value="{{ request('search') }}"
-                           placeholder="Nama / NIK / NIP..."
+                           placeholder="Nama / NIK / NIP lalu Enter..."
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="min-width:150px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">📂 Jabatan</label>
-                    <select name="role"
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-briefcase"></i> Jabatan</label>
+                    <select name="role" onchange="this.form.submit()"
                             style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                         <option value="">Semua Jabatan</option>
                         @foreach(['Guru','TU','PPL','PPG','Wali Kelas'] as $r)
@@ -49,8 +49,8 @@
                     </select>
                 </div>
                 <div style="min-width:140px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:block;">Status</label>
-                    <select name="status"
+                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-circle-question"></i> Status</label>
+                    <select name="status" onchange="this.form.submit()"
                             style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                         <option value="">Semua Status</option>
                         <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
@@ -59,11 +59,11 @@
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:flex-end;">
                     <button type="submit" class="btn btn-primary btn-sm" style="height:38px;padding:0 1rem;">
-                        <i class="fa-solid fa-filter"></i> Filter
+                        <i class="fa-solid fa-filter"></i> Saring
                     </button>
                     @if(request()->hasAny(['search','role','status']))
-                    <a href="{{ route('kepsek.participants') }}" class="btn btn-secondary btn-sm" style="height:38px;padding:0 1rem;">
-                        <i class="fa-solid fa-xmark"></i> Reset
+                    <a href="{{ route('kepsek.participants') }}" class="btn btn-secondary btn-sm" style="height:38px;padding:0 1rem;display:inline-flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-rotate-left"></i> Atur Ulang
                     </a>
                     @endif
                 </div>

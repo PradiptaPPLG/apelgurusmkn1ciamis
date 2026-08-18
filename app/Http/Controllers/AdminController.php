@@ -275,15 +275,21 @@ class AdminController extends Controller
 
     /**
      * Export attendance list to PDF (DomPDF).
+     * Note: Requires ext-gd for logo rendering. Falls back to text-only kop if GD unavailable.
      */
     public function exportPDF($id, Request $request)
     {
         $session     = ApelSession::findOrFail($id);
         $attendances = $this->getFilteredAttendances($id, $request);
-        $logoPath    = public_path('icons/logojawabaratheader.png');
-        $logoBase64  = file_exists($logoPath)
-            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
-            : null;
+
+        // Only embed logo if GD extension is available (DomPDF requires it for image rendering)
+        $logoBase64 = null;
+        if (extension_loaded('gd')) {
+            $logoPath = public_path('icons/logojawabaratheader.png');
+            if (file_exists($logoPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            }
+        }
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.session_pdf', compact('session', 'attendances', 'logoBase64'))
             ->setPaper('a4', 'portrait');
@@ -293,78 +299,17 @@ class AdminController extends Controller
     }
 
     /**
-     * Export attendance list to Excel (PhpSpreadsheet).
+     * Export attendance list to Excel (PhpSpreadsheet) — matches school kop format.
      */
     public function exportExcel($id, Request $request)
     {
-        $session     = ApelSession::findOrFail($id);
-        $attendances = $this->getFilteredAttendances($id, $request);
+        $session       = ApelSession::findOrFail($id);
+        $attendances   = $this->getFilteredAttendances($id, $request);
+        $jabatanFilter = $request->get('jabatan', '');
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Absensi');
-
-        // Header rows
-        $sheet->mergeCells('A1:D1');
-        $sheet->setCellValue('A1', 'DINAS PENDIDIKAN CABANG DINAS PENDIDIKAN WILAYAH XIII');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(11);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
-
-        $sheet->mergeCells('A2:D2');
-        $sheet->setCellValue('A2', 'SMK NEGERI 1 CIAMIS');
-        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center');
-
-        $sheet->mergeCells('A3:D3');
-        $sheet->setCellValue('A3', 'Jl. Jenderal Sudirman No. 269 Tlp. (0265) 771204 – Ciamis 46215');
-        $sheet->getStyle('A3')->getAlignment()->setHorizontal('center');
-
-        $sheet->mergeCells('A4:D4');
-        $sheet->setCellValue('A4', 'DAFTAR HADIR APEL – ' . strtoupper($session->title));
-        $sheet->getStyle('A4')->getFont()->setBold(true);
-        $sheet->getStyle('A4')->getAlignment()->setHorizontal('center');
-
-        $sheet->mergeCells('A5:D5');
-        $sheet->setCellValue('A5', 'HARI/TANGGAL: ' . $session->date->translatedFormat('l, d F Y'));
-        $sheet->getStyle('A5')->getAlignment()->setHorizontal('center');
-
-        // Column headers
-        $headers = ['No', 'Nama', 'NIP', 'Jabatan', 'Tanda Tangan'];
-        $cols    = ['A','B','C','D','E'];
-        foreach ($headers as $i => $h) {
-            $sheet->setCellValue($cols[$i] . '7', $h);
-            $sheet->getStyle($cols[$i] . '7')->getFont()->setBold(true);
-            $sheet->getStyle($cols[$i] . '7')->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFD3D3D3');
-        }
-
-        // Data rows
-        $row = 8;
-        foreach ($attendances as $idx => $a) {
-            $sheet->setCellValue('A' . $row, $idx + 1);
-            $sheet->setCellValue('B' . $row, $a->participant->name ?? $a->participant_nik);
-            $sheet->setCellValue('C' . $row, $a->participant->nip ?? '-');
-            $sheet->setCellValue('D' . $row, $a->participant->jabatan ?? ($a->participant->role ?? '-'));
-            $sheet->setCellValue('E' . $row, $idx + 1 . '.');
-            $row++;
-        }
-
-        // Column widths
-        $sheet->getColumnDimension('A')->setWidth(5);
-        $sheet->getColumnDimension('B')->setWidth(35);
-        $sheet->getColumnDimension('C')->setWidth(22);
-        $sheet->getColumnDimension('D')->setWidth(30);
-        $sheet->getColumnDimension('E')->setWidth(15);
-
-        // Border the data range
-        if ($row > 8) {
-            $sheet->getStyle('A7:E' . ($row - 1))->getBorders()->getAllBorders()
-                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        }
-
-        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'Absensi_' . str_replace(' ', '_', $session->title) . '_' . $session->date->format('Y-m-d') . '.xlsx';
+        $spreadsheet = \App\Services\AttendanceExporter::buildExcel($session, $attendances, $jabatanFilter);
+        $writer      = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename    = 'Absensi_' . str_replace(' ', '_', $session->title) . '_' . $session->date->format('Y-m-d') . '.xlsx';
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
@@ -372,6 +317,27 @@ class AdminController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
+
+    /**
+     * Preview attendance as HTML in browser (no download, no GD required).
+     * Browser handles image rendering — safe to use even without ext-gd.
+     */
+    public function previewHTML($id, Request $request)
+    {
+        $session     = ApelSession::findOrFail($id);
+        $attendances = $this->getFilteredAttendances($id, $request);
+
+        // base64 for browser — no GD needed, browser decodes the image
+        $logoBase64 = null;
+        $logoPath   = public_path('icons/logojawabaratheader.png');
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+
+        return view('exports.session_pdf', compact('session', 'attendances', 'logoBase64'))->with('isPreview', true);
+    }
+
+
 
     /**
      * Helper: get attendances with filters applied.

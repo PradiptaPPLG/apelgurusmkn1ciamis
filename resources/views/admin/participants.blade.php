@@ -169,7 +169,7 @@
 
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" for="filter_role" style="font-size: 0.75rem;">Peran</label>
-                        <select name="role" id="filter_role" class="form-control form-select" style="padding: 0.75rem 1rem;">
+                        <select name="role" id="filter_role" class="form-control form-select" style="padding: 0.75rem 1rem;" onchange="this.form.submit()">
                             <option value="">Semua</option>
                             <option value="Guru" {{ request('role') === 'Guru' ? 'selected' : '' }}>Guru</option>
                             <option value="TU" {{ request('role') === 'TU' ? 'selected' : '' }}>Staf TU</option>
@@ -181,7 +181,7 @@
 
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label" for="filter_status" style="font-size: 0.75rem;">Status</label>
-                        <select name="status" id="filter_status" class="form-control form-select" style="padding: 0.75rem 1rem;">
+                        <select name="status" id="filter_status" class="form-control form-select" style="padding: 0.75rem 1rem;" onchange="this.form.submit()">
                             <option value="">Semua</option>
                             <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
                             <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>

@@ -16,7 +16,7 @@
 
     {{-- User info --}}
     <div class="sidebar-user">
-        <div class="sidebar-user-avatar" style="background: linear-gradient(135deg,#7c3aed,#4f46e5);">
+        <div class="sidebar-user-avatar" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
             <i class="fa-solid fa-user-tie"></i>
         </div>
         <div class="sidebar-user-info">

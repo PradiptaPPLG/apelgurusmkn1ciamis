@@ -4,81 +4,84 @@
 <meta charset="UTF-8">
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'DejaVu Sans', sans-serif; font-size: 10px; color: #1a1a2e; }
+    body { font-family: 'Times New Roman', 'DejaVu Serif', serif; font-size: 10px; color: #000; }
 
+    /* ── KOP ─────────────────────────────────────── */
     .kop {
-        border-bottom: 3px double #1a1a2e;
-        padding-bottom: 8px;
-        margin-bottom: 12px;
+        border-bottom: 2.5px solid #000;
+        padding-bottom: 6px;
+        margin-bottom: 10px;
         display: table;
         width: 100%;
     }
-    .kop-logo { display: table-cell; width: 72px; vertical-align: middle; }
+    .kop-logo { display: table-cell; width: 76px; vertical-align: middle; text-align: center; }
     .kop-logo img { width: 68px; height: auto; }
-    .kop-text { display: table-cell; vertical-align: middle; text-align: center; }
-    .kop-dinas { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; }
-    .kop-sekolah { font-size: 15px; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
-    .kop-alamat { font-size: 8px; color: #555; }
+    .kop-text { display: table-cell; vertical-align: middle; text-align: center; padding: 0 8px; }
+    .kop-prov  { font-size: 9.5px; font-weight: normal; text-transform: uppercase; letter-spacing: 0.3px; }
+    .kop-dinas { font-size: 9.5px; font-weight: bold; text-transform: uppercase; }
+    .kop-cabang{ font-size: 9.5px; font-weight: bold; text-transform: uppercase; }
+    .kop-school{ font-size: 15px;  font-weight: bold; text-transform: uppercase; margin: 3px 0 2px; }
+    .kop-alamat{ font-size: 8px; }
 
+    /* ── JUDUL ───────────────────────────────────── */
     .doc-title {
         text-align: center;
         font-size: 13px;
         font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin: 10px 0 4px;
+        margin: 10px 0 3px;
         text-decoration: underline;
     }
     .doc-sub {
         text-align: center;
         font-size: 10px;
-        margin-bottom: 12px;
-        color: #333;
+        margin-bottom: 10px;
     }
 
+    /* ── INFO GRID ───────────────────────────────── */
     .info-grid { margin-bottom: 10px; }
     .info-grid table { width: 100%; }
-    .info-grid td { padding: 2px 4px; font-size: 9.5px; }
-    .info-grid .label { width: 110px; font-weight: bold; }
+    .info-grid td { padding: 1.5px 4px; font-size: 9.5px; }
+    .info-grid .lbl { width: 110px; font-weight: bold; }
     .info-grid .sep { width: 10px; }
 
-    table.absen {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 6px;
-    }
-    table.absen thead tr {
-        background-color: #1a1a2e;
-        color: #ffffff;
-    }
+    /* ── TABEL ABSENSI ───────────────────────────── */
+    table.absen { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    table.absen thead tr { background-color: #000; color: #fff; }
     table.absen thead th {
-        padding: 6px 8px;
+        padding: 5px 6px;
         text-align: center;
         font-size: 9.5px;
-        border: 1px solid #1a1a2e;
+        border: 1px solid #000;
     }
-    table.absen tbody tr:nth-child(even) { background-color: #f0f4ff; }
+    table.absen tbody tr:nth-child(even) { background-color: #f5f5f5; }
     table.absen tbody td {
-        padding: 5px 8px;
-        border: 1px solid #cdd5e0;
+        padding: 4.5px 6px;
+        border: 1px solid #555;
         font-size: 9px;
         vertical-align: middle;
     }
     table.absen tbody td.center { text-align: center; }
-    table.absen tbody td.num { text-align: center; width: 30px; }
-    .td-ttd { height: 30px; }
+    table.absen tbody td.num    { text-align: center; width: 28px; }
+    .td-ttd { height: 28px; }
+    .empty-row td { text-align: center; color: #888; padding: 18px; font-style: italic; }
 
+    /* ── SIGNATURE ───────────────────────────────── */
     .footer-sign {
-        margin-top: 24px;
+        margin-top: 20px;
         display: table;
         width: 100%;
     }
-    .sign-block { display: table-cell; text-align: center; width: 50%; }
-    .sign-block .sign-title { font-size: 9px; }
-    .sign-block .sign-name { margin-top: 50px; font-weight: bold; font-size: 9px; text-decoration: underline; }
-    .sign-block .sign-nip { font-size: 8.5px; }
+    .sign-spacer { display: table-cell; width: 55%; }
+    .sign-block  { display: table-cell; width: 45%; text-align: center; }
+    .sign-block .sign-title  { font-size: 9.5px; }
+    .sign-block .sign-space  { height: 50px; }
+    .sign-block .sign-name   { font-weight: bold; font-size: 9.5px; text-decoration: underline; }
+    .sign-block .sign-golok  { font-size: 9px; }
+    .sign-block .sign-nip    { font-size: 9px; }
 
-    .empty-row td { text-align: center; color: #999; padding: 20px; font-style: italic; }
+    /* ── FILTER BADGE ────────────────────────────── */
     .badge-filter {
         display: inline-block;
         background: #e8f0fe;
@@ -88,10 +91,70 @@
         font-size: 8px;
         margin: 0 2px;
     }
-    .filter-info { text-align: center; font-size: 8px; color: #666; margin-bottom: 6px; }
+    .filter-info { text-align: center; font-size: 8px; color: #555; margin-bottom: 6px; }
+
+    /* ── PREVIEW ─────────────────────────────────── */
+    @page {
+        size: A4 portrait;
+        margin: 15mm 15mm 20mm 15mm;
+    }
+    @media print {
+        .no-print { display: none !important; }
+        body { background: #fff !important; padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .preview-container { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+        table.absen tbody tr:nth-child(even) { background-color: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        table.absen thead tr { background-color: #000 !important; color: #fff !important; }
+    }
+    @media screen {
+        body.preview-mode { background: #f1f5f9; padding: 2rem 1rem; }
+        .preview-container {
+            background: #fff;
+            width: 100%; max-width: 820px;
+            margin: 0 auto 2rem;
+            padding: 3rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0/0.1), 0 2px 4px -2px rgb(0 0 0/0.1);
+            border-radius: 8px;
+        }
+        .preview-toolbar {
+            max-width: 820px; margin: 0 auto 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #1e293b; color: #fff;
+            padding: 0.75rem 1.5rem; border-radius: 8px;
+            font-family: system-ui, -apple-system, sans-serif; font-size: 14px;
+        }
+        .preview-btn {
+            background: #3b82f6; color: #fff; border: none;
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+            font-weight: 600; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.5rem; font-size: 13px;
+        }
+        .preview-btn:hover { background: #2563eb; }
+        .preview-btn-sec { background: #475569; }
+        .preview-btn-sec:hover { background: #334155; }
+    }
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="{{ isset($isPreview) && $isPreview ? 'preview-mode' : '' }}">
+
+@if(isset($isPreview) && $isPreview)
+    <div class="preview-toolbar no-print">
+        <div style="font-weight: 600;">
+            <i class="fa-solid fa-eye"></i> Pratinjau Laporan Presensi
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="window.print()" class="preview-btn">
+                <i class="fa-solid fa-print"></i> Cetak Laporan
+            </button>
+            <button onclick="window.close()" class="preview-btn preview-btn-sec">
+                <i class="fa-solid fa-xmark"></i> Tutup
+            </button>
+        </div>
+    </div>
+@endif
+
+<div class="{{ isset($isPreview) && $isPreview ? 'preview-container' : '' }}">
 
 {{-- ===== KOP SEKOLAH ===== --}}
 <div class="kop">
@@ -101,59 +164,76 @@
         @endif
     </div>
     <div class="kop-text">
-        <div class="kop-dinas">Dinas Pendidikan Cabang Dinas Pendidikan Wilayah XIII</div>
-        <div class="kop-sekolah">SMK Negeri 1 Ciamis</div>
-        <div class="kop-alamat">Jl. Jenderal Sudirman No. 269 Telp. (0265) 771204 – Ciamis 46215</div>
-        <div class="kop-alamat">Website: www.smkn1ciamis.sch.id | Email: info@smkn1ciamis.sch.id</div>
+        <div class="kop-prov">PEMERINTAH DAERAH PROVINSI JAWA BARAT</div>
+        <div class="kop-dinas">DINAS PENDIDIKAN</div>
+        <div class="kop-cabang">CABANG DINAS PENDIDIKAN WILAYAH XIII</div>
+        <div class="kop-school">SMK Negeri 1 Ciamis</div>
+        <div class="kop-alamat">Jalan : Jenderal Sudirman Nomor : 269 Tlp. (0265) 771204</div>
+        <div class="kop-alamat">Faksimile : (0265) 771204/777719  Website : www.smkn1ciamis.sch.id  E-mail : surat@smkn1cms.net</div>
+        <div class="kop-alamat">Ciamis – 46215</div>
     </div>
 </div>
 
-{{-- ===== JUDUL DOKUMEN ===== --}}
-<div class="doc-title">Daftar Hadir Apel</div>
+{{-- ===== JUDUL ===== --}}
+<div class="doc-title">DAFTAR HADIR APEL</div>
 <div class="doc-sub">{{ $session->title }}</div>
 
 {{-- ===== INFO SESI ===== --}}
 <div class="info-grid">
     <table>
         <tr>
-            <td class="label">Kode Sesi</td>
+            <td class="lbl">Kode Sesi</td>
             <td class="sep">:</td>
             <td>{{ $session->code }}</td>
-            <td class="label">Jenis</td>
-            <td class="sep">:</td>
-            <td>{{ ucfirst($session->type) }}</td>
-        </tr>
-        <tr>
-            <td class="label">Tanggal</td>
-            <td class="sep">:</td>
-            <td>{{ $session->date->translatedFormat('l, d F Y') }}
-                @if($session->valid_days > 1)
-                    s/d {{ $session->end_date->translatedFormat('d F Y') }}
-                @endif
-            </td>
-            <td class="label">Waktu</td>
+            <td class="lbl">Waktu</td>
             <td class="sep">:</td>
             <td>{{ \Carbon\Carbon::parse($session->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($session->end_time)->format('H:i') }} WIB</td>
         </tr>
         <tr>
-            <td class="label">Total Hadir</td>
+            <td class="lbl">Hari/Tanggal</td>
+            <td class="sep">:</td>
+            <td>
+                @php
+                    $days   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                    $months = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                    $d = $session->date;
+                    echo $days[$d->dayOfWeek] . ', ' . $d->format('d') . ' ' . $months[(int)$d->format('n')] . ' ' . $d->format('Y');
+                    if ($session->valid_days > 1) {
+                        echo ' s/d ' . $session->end_date->format('d') . ' ' . $months[(int)$session->end_date->format('n')] . ' ' . $session->end_date->format('Y');
+                    }
+                @endphp
+            </td>
+            <td class="lbl">Total Hadir</td>
             <td class="sep">:</td>
             <td>{{ $attendances->count() }} orang</td>
-            <td class="label">Cetak</td>
-            <td class="sep">:</td>
-            <td>{{ now()->translatedFormat('d F Y, H:i') }} WIB</td>
         </tr>
     </table>
 </div>
+
+{{-- Active filter badge --}}
+@if(request()->filled('jabatan') || request()->filled('search') || request()->filled('date_from'))
+<div class="filter-info">
+    <i class="fa-solid fa-filter" style="margin-right:3px;"></i>Filter aktif:
+    @if(request()->filled('jabatan'))
+        <span class="badge-filter">Jabatan: {{ request('jabatan') }}</span>
+    @endif
+    @if(request()->filled('search'))
+        <span class="badge-filter">Nama: {{ request('search') }}</span>
+    @endif
+    @if(request()->filled('date_from') || request()->filled('date_to'))
+        <span class="badge-filter">Tanggal: {{ request('date_from','—') }} s/d {{ request('date_to','—') }}</span>
+    @endif
+</div>
+@endif
 
 {{-- ===== TABEL ABSENSI ===== --}}
 <table class="absen">
     <thead>
         <tr>
-            <th style="width:28px">No</th>
-            <th style="width:150px">Nama</th>
-            <th style="width:110px">NIP/NIK</th>
-            <th style="width:90px">Jabatan</th>
+            <th style="width:26px">No</th>
+            <th style="width:160px">Nama</th>
+            <th style="width:110px">NIP / NIK</th>
+            <th style="width:100px">Jabatan</th>
             <th style="width:60px">Waktu Hadir</th>
             <th style="width:80px">Tanda Tangan</th>
         </tr>
@@ -166,7 +246,7 @@
             <td class="center">{{ $a->participant->nip ?? $a->participant_nik }}</td>
             <td class="center">{{ $a->participant->jabatan ?? ($a->participant->role ?? '-') }}</td>
             <td class="center">{{ $a->signed_in_at->format('H:i') }}</td>
-            <td class="td-ttd center">{{ $i + 1 }}.</td>
+            <td class="td-ttd center"></td>{{-- Tanda Tangan dikosongkan --}}
         </tr>
         @empty
         <tr class="empty-row">
@@ -176,21 +256,24 @@
     </tbody>
 </table>
 
-{{-- ===== TANDA TANGAN ===== --}}
+{{-- ===== TANDA TANGAN — hanya Kepala Sekolah di kanan ===== --}}
 <div class="footer-sign">
+    <div class="sign-spacer"></div>
     <div class="sign-block">
-        <div class="sign-title">Mengetahui,</div>
-        <div class="sign-title">Kepala SMKN 1 Ciamis</div>
-        <div class="sign-name">______________________</div>
-        <div class="sign-nip">NIP. ___________________</div>
-    </div>
-    <div class="sign-block">
-        <div class="sign-title">Ciamis, {{ now()->translatedFormat('d F Y') }}</div>
-        <div class="sign-title">Operator Presensi</div>
-        <div class="sign-name">______________________</div>
-        <div class="sign-nip">NIP. ___________________</div>
+        @php
+            $now = \Carbon\Carbon::now();
+            $months = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            $tglCetak = $now->format('d') . ' ' . $months[(int)$now->format('n')] . ' ' . $now->format('Y');
+        @endphp
+        <div class="sign-title">Ciamis, {{ $tglCetak }}</div>
+        <div class="sign-title">Kepala Sekolah,</div>
+        <div class="sign-space"></div>
+        <div class="sign-name">H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.</div>
+        <div class="sign-golok">Penata Tk. I/III/d</div>
+        <div class="sign-nip">NIP. 198408252010011010</div>
     </div>
 </div>
 
+</div>
 </body>
 </html>

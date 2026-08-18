@@ -46,9 +46,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::delete('/sessions/{id}', [AdminController::class, 'deleteSession'])->middleware('admin.only')->name('sessions.delete');
     Route::get('/sessions/{id}', [AdminController::class, 'sessionDetail'])->middleware('admin.only')->name('sessions.detail');
 
-    // Export routes (PDF & Excel)
+    // Export routes (PDF, Excel, Preview)
     Route::get('/sessions/{id}/export-pdf',   [AdminController::class, 'exportPDF'])->middleware('admin.only')->name('sessions.export.pdf');
     Route::get('/sessions/{id}/export-excel', [AdminController::class, 'exportExcel'])->middleware('admin.only')->name('sessions.export.excel');
+    Route::get('/sessions/{id}/preview',      [AdminController::class, 'previewHTML'])->middleware('admin.only')->name('sessions.preview');
 
     // Participants CRUD (admin only)
     Route::get('/participants', [AdminController::class, 'participants'])->middleware('admin.only')->name('participants');
@@ -68,4 +69,5 @@ Route::middleware(['auth'])->prefix('kepsek')->name('kepsek.')->group(function (
     Route::get('/sessions/{id}', [KepsekController::class, 'sessionDetail'])->name('sessions.detail');
     Route::get('/sessions/{id}/export-pdf',   [KepsekController::class, 'exportPDF'])->name('sessions.export.pdf');
     Route::get('/sessions/{id}/export-excel', [KepsekController::class, 'exportExcel'])->name('sessions.export.excel');
+    Route::get('/sessions/{id}/preview',      [KepsekController::class, 'previewHTML'])->name('sessions.preview');
 });
