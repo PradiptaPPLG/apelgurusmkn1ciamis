@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApelLocation;
 use App\Models\ApelSession;
 use App\Models\Participant;
 use App\Models\Attendance;
@@ -28,7 +29,7 @@ class AdminController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required|string',
         ]);
 
@@ -59,11 +60,12 @@ class AdminController extends Controller
     public function dashboard()
     {
         $todayStr = Carbon::today()->format('Y-m-d');
-        
-        $totalParticipants = Participant::count();
+
+        $totalParticipants  = Participant::count();
         $activeParticipants = Participant::where('status', 'aktif')->count();
-        $totalSessions = ApelSession::count();
-        $todayAttendances = Attendance::whereDate('signed_in_at', $todayStr)->count();
+        $totalSessions      = ApelSession::count();
+        $todayAttendances   = Attendance::whereDate('signed_in_at', $todayStr)->count();
+        $apelLocation       = ApelLocation::getInstance();
 
         // Get sessions, newest first
         $sessions = ApelSession::withCount('attendances')
@@ -76,7 +78,8 @@ class AdminController extends Controller
             'activeParticipants',
             'totalSessions',
             'todayAttendances',
-            'sessions'
+            'sessions',
+            'apelLocation'
         ));
     }
 
@@ -86,16 +89,16 @@ class AdminController extends Controller
     public function storeSession(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'date' => 'required|date',
-            'type' => 'required|in:pagi,sore',
+            'title'      => 'required|string|max:255',
+            'date'       => 'required|date',
+            'type'       => 'required|in:pagi,sore',
             'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
+            'end_time'   => 'required|after:start_time',
         ]);
 
         // Auto generate unique 5-character code
         do {
-            $code = '';
+            $code  = '';
             $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             for ($i = 0; $i < 5; $i++) {
                 $code .= $chars[rand(0, strlen($chars) - 1)];
@@ -103,12 +106,12 @@ class AdminController extends Controller
         } while (ApelSession::where('code', $code)->exists());
 
         ApelSession::create([
-            'title' => $request->title,
-            'date' => $request->date,
-            'type' => $request->type,
+            'title'      => $request->title,
+            'date'       => $request->date,
+            'type'       => $request->type,
             'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'code' => $code,
+            'end_time'   => $request->end_time,
+            'code'       => $code,
         ]);
 
         return redirect()->route('admin.dashboard')->with('success', 'Sesi Apel baru berhasil dibuat dengan Kode: ' . $code);
@@ -134,7 +137,7 @@ class AdminController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nik', 'like', "%{$search}%")
                   ->orWhere('nip', 'like', "%{$search}%")
                   ->orWhere('other_id', 'like', "%{$search}%")
@@ -151,8 +154,9 @@ class AdminController extends Controller
         }
 
         $participants = $query->orderBy('name', 'asc')->paginate(15);
+        $apelLocation = ApelLocation::getInstance();
 
-        return view('admin.participants', compact('participants'));
+        return view('admin.participants', compact('participants', 'apelLocation'));
     }
 
     /**
@@ -161,14 +165,14 @@ class AdminController extends Controller
     public function storeParticipant(Request $request)
     {
         $request->validate([
-            'nik' => 'required|string|unique:participants,nik',
-            'nip' => 'nullable|string|unique:participants,nip',
-            'other_id' => 'nullable|string|unique:participants,other_id',
-            'name' => 'required|string|max:255',
-            'jabatan' => 'nullable|string|max:255',
+            'nik'               => 'required|string|unique:participants,nik',
+            'nip'               => 'nullable|string|unique:participants,nip',
+            'other_id'          => 'nullable|string|unique:participants,other_id',
+            'name'              => 'required|string|max:255',
+            'jabatan'           => 'nullable|string|max:255',
             'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
-            'role' => 'required|in:Guru,TU,PPL,PPG',
-            'status' => 'required|in:aktif,nonaktif',
+            'role'              => 'required|in:Guru,TU,PPL,PPG',
+            'status'            => 'required|in:aktif,nonaktif',
         ]);
 
         Participant::create($request->only(['nik', 'nip', 'other_id', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
@@ -184,14 +188,14 @@ class AdminController extends Controller
         $participant = Participant::findOrFail($nik);
 
         $request->validate([
-            'nik' => 'required|string|unique:participants,nik,' . $nik . ',nik',
-            'nip' => 'nullable|string|unique:participants,nip,' . $nik . ',nik',
-            'other_id' => 'nullable|string|unique:participants,other_id,' . $nik . ',nik',
-            'name' => 'required|string|max:255',
-            'jabatan' => 'nullable|string|max:255',
+            'nik'               => 'required|string|unique:participants,nik,' . $nik . ',nik',
+            'nip'               => 'nullable|string|unique:participants,nip,' . $nik . ',nik',
+            'other_id'          => 'nullable|string|unique:participants,other_id,' . $nik . ',nik',
+            'name'              => 'required|string|max:255',
+            'jabatan'           => 'nullable|string|max:255',
             'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
-            'role' => 'required|in:Guru,TU,PPL,PPG',
-            'status' => 'required|in:aktif,nonaktif',
+            'role'              => 'required|in:Guru,TU,PPL,PPG',
+            'status'            => 'required|in:aktif,nonaktif',
         ]);
 
         $participant->update($request->only(['nik', 'nip', 'other_id', 'name', 'jabatan', 'jenis_kepegawaian', 'role', 'status']));
@@ -215,13 +219,14 @@ class AdminController extends Controller
      */
     public function sessionDetail($id)
     {
-        $session = ApelSession::findOrFail($id);
-        $attendances = Attendance::with('participant')
+        $session      = ApelSession::findOrFail($id);
+        $attendances  = Attendance::with('participant')
             ->where('apel_session_id', $id)
             ->orderBy('signed_in_at', 'asc')
             ->get();
+        $apelLocation = ApelLocation::getInstance();
 
-        return view('admin.session_detail', compact('session', 'attendances'));
+        return view('admin.session_detail', compact('session', 'attendances', 'apelLocation'));
     }
 
     /**
@@ -229,7 +234,7 @@ class AdminController extends Controller
      */
     public function exportCSV($id)
     {
-        $session = ApelSession::findOrFail($id);
+        $session     = ApelSession::findOrFail($id);
         $attendances = Attendance::with('participant')
             ->where('apel_session_id', $id)
             ->orderBy('signed_in_at', 'asc')
@@ -247,13 +252,13 @@ class AdminController extends Controller
 
         $columns = ['No', 'NIK', 'NIP', 'ID Lainnya', 'Nama', 'Jabatan', 'Jenis Kepegawaian', 'Peran', 'Waktu Hadir', 'Latitude', 'Longitude', 'Lokasi Presisi'];
 
-        $callback = function() use($attendances, $columns) {
+        $callback = function () use ($attendances, $columns) {
             $file = fopen('php://output', 'w');
-            
-            // Add UTF-8 BOM for proper Excel compatibility in Indonesian/Windows
+
+            // Add UTF-8 BOM for proper Excel compatibility
             fputs($file, "\xEF\xBB\xBF");
-            
-            fputcsv($file, $columns, ';'); // Use semicolon as separator for Indonesian Excel regional settings compatibility
+
+            fputcsv($file, $columns, ';');
 
             foreach ($attendances as $idx => $attendance) {
                 $row = [
@@ -278,5 +283,57 @@ class AdminController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Show apel location settings page.
+     */
+    public function apelLocation()
+    {
+        $apelLocation = ApelLocation::getInstance();
+        return view('admin.apel_location', compact('apelLocation'));
+    }
+
+    /**
+     * Save apel location.
+     */
+    public function saveApelLocation(Request $request)
+    {
+        $request->validate([
+            'latitude'  => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'label'     => 'nullable|string|max:255',
+        ]);
+
+        $location = ApelLocation::getInstance();
+        $location->update([
+            'latitude'     => $request->latitude,
+            'longitude'    => $request->longitude,
+            'radius_meter' => 10, // selalu tetap 10 meter
+            'label'        => $request->label ?? 'Titik Apel',
+            'updated_by'   => Auth::user()->name,
+        ]);
+
+        return redirect()->route('admin.apel.location')->with('success', 'Titik apel berhasil disimpan! Koordinat: ' . $request->latitude . ', ' . $request->longitude);
+    }
+
+    /**
+     * Public API: return apel geofence location as JSON (used by checkin form).
+     */
+    public function getApelLocation()
+    {
+        $loc = ApelLocation::getInstance();
+
+        if (!$loc->isConfigured()) {
+            return response()->json(['configured' => false]);
+        }
+
+        return response()->json([
+            'configured'   => true,
+            'latitude'     => $loc->latitude,
+            'longitude'    => $loc->longitude,
+            'radius_meter' => $loc->radius_meter,
+            'label'        => $loc->label,
+        ]);
     }
 }

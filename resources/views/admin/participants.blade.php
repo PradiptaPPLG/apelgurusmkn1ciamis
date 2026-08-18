@@ -2,9 +2,35 @@
 
 @section('title', 'Kelola Peserta - E-Apel SMKN 1 Ciamis')
 
-@section('body-class', 'admin-layout')
+@section('body-class', 'admin-layout admin-sidebar-layout')
 
 @section('content')
+<div class="admin-wrapper">
+
+    {{-- Sidebar --}}
+    @include('admin.partials.sidebar', ['activePage' => 'participants'])
+
+    {{-- Main Content --}}
+    <div class="admin-main">
+
+        {{-- Mobile Topbar --}}
+        <header class="admin-mobile-topbar">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <span class="mobile-topbar-title"><i class="fa-solid fa-users"></i> Data Guru & Peserta</span>
+        </header>
+
+        <div class="admin-content-area">
+
+        {{-- Page Header --}}
+        <div class="page-header">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-users" style="color: var(--accent-teal);"></i> Data Guru & Peserta</h1>
+                <p class="page-subtitle">Kelola data seluruh guru dan peserta yang terdaftar dalam sistem E-Apel.</p>
+            </div>
+        </div>
+
 <style>
     /* Modal Backdrop */
     .modal-backdrop {
@@ -38,52 +64,15 @@
 
 </style>
 
-<!-- Admin Navbar -->
-<header class="admin-navbar">
-    <div class="admin-nav-brand">
-        <div class="admin-nav-logo">
-            <i class="fa-solid fa-gauge"></i>
-        </div>
-        <div>
-            <div>E-Apel Admin</div>
-            <div style="font-size: 0.7rem; font-weight: 500; color: var(--text-muted);">SMKN 1 Ciamis</div>
-        </div>
-    </div>
-    
-    <nav class="admin-nav-links">
-        <a href="{{ route('admin.dashboard') }}" class="admin-nav-link">
-            <i class="fa-solid fa-calendar-days"></i> Sesi Apel
-        </a>
-        <a href="{{ route('admin.participants') }}" class="admin-nav-link active">
-            <i class="fa-solid fa-users"></i> Data Guru & Peserta
-        </a>
-    </nav>
 
-    <div class="admin-user-menu">
-        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);" class="hide-mobile">
-            {{ Auth::user()->name }}
-        </span>
-        <form action="{{ route('admin.logout') }}" method="POST" style="display: inline;">
-            @csrf
-            <button type="submit" class="btn btn-secondary btn-sm" style="color: var(--accent-rose); border-color: rgba(244, 63, 94, 0.2);">
-                <i class="fa-solid fa-right-from-bracket"></i> Keluar
-            </button>
-        </form>
-    </div>
-</header>
-
-<!-- Main Admin Area -->
-<main class="glass-container-wide">
     
-    <!-- Success Alert -->
+    {{-- Alerts --}}
     @if (session('success'))
         <div class="alert alert-success">
             <i class="fa-solid fa-circle-check"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
-
-    <!-- Error Alert -->
     @if ($errors->any())
         <div class="alert alert-danger">
             <i class="fa-solid fa-circle-exclamation"></i>
@@ -95,7 +84,6 @@
         </div>
     @endif
 
-    <!-- Content Split Panel -->
     <div class="panel-split">
         
         <!-- Left Side: Add Participant Form -->
@@ -296,7 +284,10 @@
             @endif
         </div>
     </div>
-</main>
+
+        </div>{{-- end content-area --}}
+    </div>{{-- end admin-main --}}
+</div>{{-- end admin-wrapper --}}
 
 <!-- Edit Participant Modal Overlay -->
 <div id="editModal" class="modal-backdrop">
@@ -374,6 +365,14 @@
 </div>
 
 <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const isOpen  = sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', !isOpen);
+        overlay.classList.toggle('active', !isOpen);
+    }
+
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
     

@@ -2,12 +2,18 @@
 
 @section('title', 'Detail Presensi - E-Apel SMKN 1 Ciamis')
 
-@section('body-class', 'admin-layout')
+@section('body-class', 'admin-layout admin-sidebar-layout')
+
+{{-- Push Leaflet CSS ke <head> --}}
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+@endpush
 
 @section('content')
-<!-- Leaflet Map Assets CDN -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{{-- Leaflet JS --}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
     /* Modal Backdrop for Image Zoom */
     .modal-backdrop {
@@ -54,43 +60,32 @@
     }
 </style>
 
-<!-- Admin Navbar -->
-<header class="admin-navbar">
-    <div class="admin-nav-brand">
-        <div class="admin-nav-logo">
-            <i class="fa-solid fa-gauge"></i>
-        </div>
-        <div>
-            <div>E-Apel Admin</div>
-            <div style="font-size: 0.7rem; font-weight: 500; color: var(--text-muted);">SMKN 1 Ciamis</div>
-        </div>
-    </div>
-    
-    <nav class="admin-nav-links">
-        <a href="{{ route('admin.dashboard') }}" class="admin-nav-link active">
-            <i class="fa-solid fa-calendar-days"></i> Sesi Apel
-        </a>
-        <a href="{{ route('admin.participants') }}" class="admin-nav-link">
-            <i class="fa-solid fa-users"></i> Data Guru & Peserta
-        </a>
-    </nav>
+<div class="admin-wrapper">
 
-    <div class="admin-user-menu">
-        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);" class="hide-mobile">
-            {{ Auth::user()->name }}
-        </span>
-        <form action="{{ route('admin.logout') }}" method="POST" style="display: inline;">
-            @csrf
-            <button type="submit" class="btn btn-secondary btn-sm" style="color: var(--accent-rose); border-color: rgba(244, 63, 94, 0.2);">
-                <i class="fa-solid fa-right-from-bracket"></i> Keluar
+    {{-- Sidebar --}}
+    @include('admin.partials.sidebar', ['activePage' => 'dashboard'])
+
+    {{-- Main Content --}}
+    <div class="admin-main">
+
+        {{-- Mobile Topbar --}}
+        <header class="admin-mobile-topbar">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
             </button>
-        </form>
-    </div>
-</header>
+            <span class="mobile-topbar-title"><i class="fa-solid fa-clipboard-list"></i> Detail Presensi</span>
+        </header>
 
-<!-- Main Admin Area -->
-<main class="glass-container-wide">
-    
+        <div class="admin-content-area">
+
+        {{-- Page Header --}}
+        <div class="page-header">
+            <div>
+                <h1 class="page-title"><i class="fa-solid fa-clipboard-list" style="color: var(--accent-teal);"></i> Detail Sesi Presensi</h1>
+                <p class="page-subtitle">Rincian kehadiran peserta pada sesi: <strong>{{ $session->title }}</strong></p>
+            </div>
+        </div>
+
     <!-- Top Row Navigation & Actions -->
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary btn-sm">
@@ -233,7 +228,10 @@
             </table>
         </div>
     @endif
-</main>
+
+        </div>{{-- end content-area --}}
+    </div>{{-- end admin-main --}}
+</div>{{-- end admin-wrapper --}}
 
 <!-- Image Zoom Modal Overlay -->
 <div id="imageModal" class="modal-backdrop">
@@ -320,5 +318,13 @@
             closeMapModal();
         }
     });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const isOpen  = sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', !isOpen);
+        overlay.classList.toggle('active', !isOpen);
+    }
 </script>
 @endsection
