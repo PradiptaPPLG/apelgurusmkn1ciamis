@@ -8,7 +8,7 @@
 
     {{-- Header: text only, no logo icon --}}
     <div class="brand-header" style="margin-bottom: 1.5rem;">
-        <h1 class="brand-title">E-Apel Guru</h1>
+        <h1 class="brand-title">Asign Guru</h1>
     </div>
 
     {{-- Error Alerts --}}

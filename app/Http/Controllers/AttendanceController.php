@@ -15,14 +15,18 @@ class AttendanceController extends Controller
      */
     public function index(Request $request, $code = null)
     {
-        $now = Carbon::now();
+        $now      = Carbon::now();
         $todayStr = $now->format('Y-m-d');
-        
-        // Find any session active today
-        $activeSessions = ApelSession::whereDate('date', $todayStr)->get();
-        
-        // Filter sessions that are currently open
-        $openSession = $activeSessions->filter(function($session) {
+
+        // Find sessions active today (multi-day: date <= today <= end_date)
+        $activeSessions = ApelSession::where('date', '<=', $todayStr)
+            ->where(function ($q) use ($todayStr) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+            })
+            ->get();
+
+        // Filter sessions that are currently open (within time window)
+        $openSession = $activeSessions->filter(function ($session) {
             return $session->isOpen();
         })->first();
 
@@ -30,17 +34,20 @@ class AttendanceController extends Controller
         $urlSession = null;
         if ($code) {
             $urlSession = ApelSession::where('code', strtoupper($code))
-                ->whereDate('date', $todayStr)
+                ->where('date', '<=', $todayStr)
+                ->where(function ($q) use ($todayStr) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+                })
                 ->first();
         }
 
         $selectedCode = $code ? strtoupper($code) : '';
 
         return view('checkin', [
-            'openSession' => $openSession,
-            'urlSession' => $urlSession,
+            'openSession'  => $openSession,
+            'urlSession'   => $urlSession,
             'selectedCode' => $selectedCode,
-            'now' => $now,
+            'now'          => $now,
         ]);
     }
 
@@ -76,13 +83,18 @@ class AttendanceController extends Controller
             return back()->withErrors(['nik' => 'Status NIK / NIP / ID Anda saat ini nonaktif. Silakan hubungi admin.'])->withInput();
         }
 
-        // 2. Find the session by code
+        $todayStr = Carbon::today()->format('Y-m-d');
+
+        // 2. Find the session by code — supports multi-day sessions
         $session = ApelSession::where('code', $code)
-            ->whereDate('date', Carbon::today()->format('Y-m-d'))
+            ->where('date', '<=', $todayStr)
+            ->where(function ($q) use ($todayStr) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+            })
             ->first();
 
         if (!$session) {
-            return back()->withErrors(['code' => 'Kode registrasi salah atau bukan untuk hari ini.'])->withInput();
+            return back()->withErrors(['code' => 'Kode registrasi salah atau masa berlakunya sudah habis.'])->withInput();
         }
 
         // 3. Verify session time window

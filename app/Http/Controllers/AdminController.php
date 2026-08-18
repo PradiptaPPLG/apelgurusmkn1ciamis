@@ -94,7 +94,12 @@ class AdminController extends Controller
             'type'       => 'required|in:pagi,sore',
             'start_time' => 'required',
             'end_time'   => 'required|after:start_time',
+            'valid_days' => 'required|integer|min:1|max:7',
         ]);
+
+        $validDays = (int) $request->valid_days;
+        $startDate = Carbon::parse($request->date);
+        $endDate   = $startDate->copy()->addDays($validDays - 1);
 
         // Auto generate unique 5-character code
         do {
@@ -112,9 +117,15 @@ class AdminController extends Controller
             'start_time' => $request->start_time,
             'end_time'   => $request->end_time,
             'code'       => $code,
+            'valid_days' => $validDays,
+            'end_date'   => $endDate->format('Y-m-d'),
         ]);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Sesi Apel baru berhasil dibuat dengan Kode: ' . $code);
+        $rangeLabel = $validDays > 1
+            ? ' (berlaku ' . $startDate->format('d M') . ' – ' . $endDate->format('d M Y') . ')'
+            : '';
+
+        return redirect()->route('admin.dashboard')->with('success', 'Sesi Apel baru berhasil dibuat dengan Kode: ' . $code . $rangeLabel);
     }
 
     /**
@@ -219,14 +230,25 @@ class AdminController extends Controller
      */
     public function sessionDetail($id)
     {
-        $session      = ApelSession::findOrFail($id);
-        $attendances  = Attendance::with('participant')
+        $session     = ApelSession::findOrFail($id);
+        $attendances = Attendance::with('participant')
             ->where('apel_session_id', $id)
             ->orderBy('signed_in_at', 'asc')
             ->get();
         $apelLocation = ApelLocation::getInstance();
 
-        return view('admin.session_detail', compact('session', 'attendances', 'apelLocation'));
+        // Collect NIKs of participants who already checked in
+        $checkedInNiks = $attendances->pluck('participant_nik')->toArray();
+
+        // All active participants NOT in the checked-in list
+        $absentParticipants = Participant::where('status', 'aktif')
+            ->whereNotIn('nik', $checkedInNiks)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.session_detail', compact(
+            'session', 'attendances', 'apelLocation', 'absentParticipants'
+        ));
     }
 
     /**

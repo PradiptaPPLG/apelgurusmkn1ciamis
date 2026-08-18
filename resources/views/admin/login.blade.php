@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Admin Login - E-Apel SMKN 1 Ciamis')
+@section('title', 'Admin Login - Asign SMKN 1 Ciamis')
 
 @section('body-class', 'client-layout')
 

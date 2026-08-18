@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Admin - E-Apel SMKN 1 Ciamis')
+@section('title', 'Dashboard Admin - Asign SMKN 1 Ciamis')
 @section('body-class', 'admin-layout admin-sidebar-layout')
 
 @section('content')
@@ -142,6 +142,17 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label" for="valid_days">Berlaku Selama</label>
+                            <select name="valid_days" id="valid_days" class="form-control form-select" required>
+                                <option value="1">1 Hari (Hanya Hari Ini)</option>
+                                <option value="2">2 Hari</option>
+                                <option value="3">3 Hari</option>
+                                <option value="5">5 Hari</option>
+                                <option value="7">7 Hari (1 Minggu)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label" for="type">Tipe Waktu</label>
                             <select name="type" id="type" class="form-control form-select" required onchange="autoFillTime(this.value)">
                                 <option value="pagi">Pagi (Sign-in)</option>
@@ -168,8 +179,12 @@
 
                 {{-- Right Side: Sessions List --}}
                 <div>
-                    <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between;">
+                    <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                         <span><i class="fa-solid fa-list" style="color: var(--accent-teal)"></i> Riwayat Sesi Apel</span>
+                        <span style="font-size: 0.72rem; display: flex; align-items: center; gap: 0.8rem; font-weight: 600; background: rgba(255,255,255,0.4); padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--input-border);">
+                            <span style="display: flex; align-items: center; gap: 0.3rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Hijau = Aktif</span>
+                            <span style="display: flex; align-items: center; gap: 0.3rem;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> Merah = Kadaluarsa</span>
+                        </span>
                     </h3>
 
                     @if ($sessions->isEmpty())
@@ -195,7 +210,12 @@
                                         <tr>
                                             <td>
                                                 <div style="font-weight: 700; color: var(--text-main);">{{ $session->title }}</div>
-                                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ $session->date->format('d M Y') }}</div>
+                                                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                                    {{ $session->dateRangeLabel() }}
+                                                    @if($session->valid_days > 1)
+                                                        <span style="color: var(--accent-indigo); font-weight: 600;">({{ $session->valid_days }} hari)</span>
+                                                    @endif
+                                                </div>
                                             </td>
                                             <td>
                                                 <span class="badge {{ $session->type === 'pagi' ? 'badge-info' : 'badge-warning' }}">
@@ -209,7 +229,11 @@
                                             </td>
                                             <td style="text-align: center;">
                                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
-                                                    <code style="font-family: monospace; font-size: 1rem; font-weight: 800; background: rgba(99, 102, 241, 0.1); color: var(--accent-indigo); padding: 0.15rem 0.4rem; border-radius: 4px;">{{ $session->code }}</code>
+                                                    @if($session->isExpired())
+                                                        <code style="font-family: monospace; font-size: 1rem; font-weight: 800; background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.15rem 0.4rem; border-radius: 4px;" title="Sesi Kadaluarsa (Masa Berlaku Habis)">{{ $session->code }}</code>
+                                                    @else
+                                                        <code style="font-family: monospace; font-size: 1rem; font-weight: 800; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.15rem 0.4rem; border-radius: 4px;" title="Sesi Aktif (Masih Berlaku)">{{ $session->code }}</code>
+                                                    @endif
                                                     <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.65rem; padding: 0.1rem 0.3rem;" onclick="copyShareLink('{{ route('apel.index', $session->code) }}')">
                                                         <i class="fa-solid fa-copy"></i> Salin Link
                                                     </button>

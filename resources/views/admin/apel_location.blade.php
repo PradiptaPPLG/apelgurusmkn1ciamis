@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Titik Apel - Admin E-Apel SMKN 1 Ciamis')
+@section('title', 'Titik Apel - Admin Asign SMKN 1 Ciamis')
 @section('body-class', 'admin-layout admin-sidebar-layout')
 
 {{-- Leaflet CSS → masuk ke <head> via @stack --}}
@@ -67,12 +67,8 @@
                 </div>
             @endif
 
-            {{-- Status Card --}}
             <div class="location-status-card {{ $apelLocation->isConfigured() ? 'status-configured' : 'status-not-configured' }}">
                 @if($apelLocation->isConfigured())
-                    <div class="status-icon status-icon-green">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
                     <div>
                         <div class="status-title">Titik Apel Aktif</div>
                         <div class="status-desc">
@@ -225,10 +221,9 @@
         zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 22,
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 20,
     }).addTo(map);
 
     // ── State ─────────────────────────────────────────────────

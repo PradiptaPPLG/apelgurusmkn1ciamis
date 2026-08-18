@@ -8,7 +8,7 @@
             <i class="fa-solid fa-flag"></i>
         </div>
         <div class="sidebar-brand-text">
-            <div class="sidebar-brand-name">E-Apel</div>
+            <div class="sidebar-brand-name">Asign</div>
             <div class="sidebar-brand-sub">SMKN 1 Ciamis</div>
         </div>
         <button class="sidebar-close-btn" id="sidebarCloseBtn" onclick="toggleSidebar()">

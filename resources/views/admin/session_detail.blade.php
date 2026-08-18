@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Presensi - E-Apel SMKN 1 Ciamis')
+@section('title', 'Detail Presensi - Asign SMKN 1 Ciamis')
 
 @section('body-class', 'admin-layout admin-sidebar-layout')
 
@@ -228,6 +228,57 @@
             </table>
         </div>
     @endif
+
+    <!-- Absent Participants Section -->
+    <div style="background: rgba(239, 68, 68, 0.04); border: 1.5px solid rgba(239, 68, 68, 0.15); border-radius: var(--radius-md); padding: 1.5rem; margin-top: 2.5rem; margin-bottom: 2rem;">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.15rem; color: #ef4444; display: flex; align-items: center; gap: 0.55rem;">
+            <i class="fa-solid fa-circle-xmark"></i>
+            <span>Daftar Peserta Belum Presensi ({{ $absentParticipants->count() }} orang)</span>
+        </h3>
+        
+        @if($absentParticipants->isEmpty())
+            <div style="color: #10b981; font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-circle-check" style="font-size: 1.1rem;"></i> Semua peserta aktif sudah melakukan presensi pada sesi ini.
+            </div>
+        @else
+            <div class="table-responsive" style="max-height: 280px; overflow-y: auto; border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--radius-sm);">
+                <table class="table-custom" style="margin-bottom: 0;">
+                    <thead style="position: sticky; top: 0; z-index: 2;">
+                        <tr>
+                            <th style="width: 50px; background: #fee2e2; color: #991b1b; border-bottom: 1.5px solid rgba(239,68,68,0.2);">No</th>
+                            <th style="background: #fee2e2; color: #991b1b; border-bottom: 1.5px solid rgba(239,68,68,0.2);">NIK / NIP</th>
+                            <th style="background: #fee2e2; color: #991b1b; border-bottom: 1.5px solid rgba(239,68,68,0.2);">Nama Lengkap</th>
+                            <th style="background: #fee2e2; color: #991b1b; border-bottom: 1.5px solid rgba(239,68,68,0.2);">Kategori</th>
+                            <th style="background: #fee2e2; color: #991b1b; border-bottom: 1.5px solid rgba(239,68,68,0.2);">Jabatan / Kepegawaian</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($absentParticipants as $idx => $absent)
+                            <tr style="background: rgba(254, 242, 242, 0.25);">
+                                <td style="color: #991b1b;">{{ $idx + 1 }}</td>
+                                <td style="font-family: monospace; color: #991b1b;">
+                                    <strong>{{ $absent->nik }}</strong>
+                                    @if($absent->nip)
+                                        <div style="font-size: 0.72rem; color: #b91c1c; opacity: 0.85;">NIP: {{ $absent->nip }}</div>
+                                    @endif
+                                </td>
+                                <td style="font-weight: 600; color: #991b1b;">{{ $absent->name }}</td>
+                                <td>
+                                    <span class="badge" style="background: #fecaca; color: #991b1b; font-weight: 600; font-size: 0.75rem; border: 1px solid rgba(239,68,68,0.2);">{{ $absent->role }}</span>
+                                </td>
+                                <td style="color: #991b1b; font-size: 0.82rem; font-weight: 500;">
+                                    {{ $absent->jabatan ?? '—' }}
+                                    @if($absent->jenis_kepegawaian)
+                                        <span style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #b91c1c; background: rgba(239, 68, 68, 0.08); padding: 0.1rem 0.35rem; border-radius: 4px; margin-left: 0.3rem;">{{ $absent->jenis_kepegawaian }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
 
         </div>{{-- end content-area --}}
     </div>{{-- end admin-main --}}

@@ -1,6 +1,6 @@
 {
-  "name": "E-Apel SMKN 1 Ciamis",
-  "short_name": "E-Apel",
+  "name": "Asign SMKN 1 Ciamis",
+  "short_name": "Asign",
   "description": "Aplikasi Presensi Elektronik Apel Guru dan Peserta SMKN 1 Ciamis",
   "start_url": "/apel",
   "display": "standalone",

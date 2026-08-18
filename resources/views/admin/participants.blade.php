@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kelola Peserta - E-Apel SMKN 1 Ciamis')
+@section('title', 'Kelola Peserta - Asign SMKN 1 Ciamis')
 
 @section('body-class', 'admin-layout admin-sidebar-layout')
 
@@ -27,7 +27,7 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-users" style="color: var(--accent-teal);"></i> Data Guru & Peserta</h1>
-                <p class="page-subtitle">Kelola data seluruh guru dan peserta yang terdaftar dalam sistem E-Apel.</p>
+                <p class="page-subtitle">Kelola data seluruh guru dan peserta yang terdaftar dalam sistem Asign.</p>
             </div>
         </div>
 
