@@ -139,6 +139,7 @@
                         <option value="TU">Staf TU</option>
                         <option value="PPL">Peserta PPL</option>
                         <option value="PPG">Peserta PPG</option>
+                        <option value="Wali Kelas">Wali Kelas</option>
                     </select>
                 </div>
 
@@ -174,6 +175,7 @@
                             <option value="TU" {{ request('role') === 'TU' ? 'selected' : '' }}>Staf TU</option>
                             <option value="PPL" {{ request('role') === 'PPL' ? 'selected' : '' }}>PPL</option>
                             <option value="PPG" {{ request('role') === 'PPG' ? 'selected' : '' }}>PPG</option>
+                            <option value="Wali Kelas" {{ request('role') === 'Wali Kelas' ? 'selected' : '' }}>Wali Kelas</option>
                         </select>
                     </div>
 
@@ -345,6 +347,7 @@
                     <option value="TU">Staf TU</option>
                     <option value="PPL">Peserta PPL</option>
                     <option value="PPG">Peserta PPG</option>
+                    <option value="Wali Kelas">Wali Kelas</option>
                 </select>
             </div>
 

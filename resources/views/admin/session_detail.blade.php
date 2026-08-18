@@ -87,15 +87,105 @@
         </div>
 
     <!-- Top Row Navigation & Actions -->
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
         <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary btn-sm">
             <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
         </a>
-        
-        <a href="{{ route('admin.sessions.export', $session->id) }}" class="btn btn-primary">
-            <i class="fa-solid fa-file-csv"></i> Unduh Laporan (CSV)
-        </a>
+
+        {{-- Download Dropdown --}}
+        <div style="position: relative; display: inline-block;" id="exportDropdownWrapper">
+            <button type="button" class="btn btn-primary" id="exportDropdownBtn"
+                    onclick="toggleExportDropdown()"
+                    style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-download"></i>
+                Unduh Laporan
+                <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;"></i>
+            </button>
+            <div id="exportDropdownMenu" style="display:none; position:absolute; right:0; top:calc(100% + 6px); background:var(--card-bg); border:1.5px solid var(--card-border); border-radius:var(--radius-md); box-shadow:var(--card-shadow); min-width:200px; z-index:100; overflow:hidden;">
+                @php
+                    $exportParams = array_filter(request()->only(['search','jabatan','date_from','date_to']));
+                @endphp
+                <a href="{{ route('admin.sessions.export.pdf', array_merge(['id' => $session->id], $exportParams)) }}"
+                   class="export-option" style="display:flex; align-items:center; gap:0.65rem; padding:0.7rem 1rem; color:var(--text-main); text-decoration:none; font-size:0.9rem; transition:background 0.15s;"
+                   onmouseover="this.style.background='rgba(99,102,241,0.07)'" onmouseout="this.style.background='transparent'">
+                    <i class="fa-solid fa-file-pdf" style="color:#e53e3e; width:16px;"></i>
+                    <div>
+                        <div style="font-weight:600;">Unduh PDF</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Format kop sekolah resmi</div>
+                    </div>
+                </a>
+                <div style="height:1px; background:var(--card-border); margin:0 0.5rem;"></div>
+                <a href="{{ route('admin.sessions.export.excel', array_merge(['id' => $session->id], $exportParams)) }}"
+                   class="export-option" style="display:flex; align-items:center; gap:0.65rem; padding:0.7rem 1rem; color:var(--text-main); text-decoration:none; font-size:0.9rem; transition:background 0.15s;"
+                   onmouseover="this.style.background='rgba(99,102,241,0.07)'" onmouseout="this.style.background='transparent'">
+                    <i class="fa-solid fa-file-excel" style="color:#1d6f42; width:16px;"></i>
+                    <div>
+                        <div style="font-weight:600;">Unduh Excel</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Format spreadsheet .xlsx</div>
+                    </div>
+                </a>
+            </div>
+        </div>
     </div>
+
+    {{-- Filter Bar --}}
+    <form method="GET" action="{{ route('admin.sessions.detail', $session->id) }}"
+          style="background:var(--card-bg); border:1.5px solid var(--card-border); border-radius:var(--radius-md); padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-end;">
+
+        <div style="flex:1; min-width:160px;">
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.3rem; display:block;">🔍 Cari Nama</label>
+            <input type="text" name="search" value="{{ request('search') }}"
+                   placeholder="Ketik nama..."
+                   style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid var(--input-border); border-radius:var(--radius-sm); background:var(--input-bg); color:var(--text-main); font-size:0.88rem;">
+        </div>
+
+        <div style="min-width:150px;">
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.3rem; display:block;">📂 Jabatan</label>
+            <select name="jabatan"
+                    style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid var(--input-border); border-radius:var(--radius-sm); background:var(--input-bg); color:var(--text-main); font-size:0.88rem;">
+                <option value="">Semua Jabatan</option>
+                @foreach(['Guru','TU','PPL','PPG','Wali Kelas'] as $j)
+                    <option value="{{ $j }}" {{ request('jabatan') === $j ? 'selected' : '' }}>{{ $j }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div style="min-width:140px;">
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.3rem; display:block;">📅 Dari Tanggal</label>
+            <input type="date" name="date_from" value="{{ request('date_from') }}"
+                   style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid var(--input-border); border-radius:var(--radius-sm); background:var(--input-bg); color:var(--text-main); font-size:0.88rem;">
+        </div>
+
+        <div style="min-width:140px;">
+            <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.3rem; display:block;">📅 Sampai Tanggal</label>
+            <input type="date" name="date_to" value="{{ request('date_to') }}"
+                   style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid var(--input-border); border-radius:var(--radius-sm); background:var(--input-bg); color:var(--text-main); font-size:0.88rem;">
+        </div>
+
+        <div style="display:flex; gap:0.5rem; align-items:flex-end;">
+            <button type="submit" class="btn btn-primary btn-sm" style="height:38px; padding:0 1rem;">
+                <i class="fa-solid fa-filter"></i> Filter
+            </button>
+            @if(request()->hasAny(['search','jabatan','date_from','date_to']))
+            <a href="{{ route('admin.sessions.detail', $session->id) }}" class="btn btn-secondary btn-sm" style="height:38px; padding:0 1rem;">
+                <i class="fa-solid fa-xmark"></i> Reset
+            </a>
+            @endif
+        </div>
+    </form>
+
+    @if(request()->hasAny(['search','jabatan','date_from','date_to']))
+    <div style="margin-bottom:1rem; font-size:0.82rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <i class="fa-solid fa-circle-info" style="color:var(--accent-indigo);"></i>
+        <span>Filter aktif:</span>
+        @if(request('search')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Nama: "{{ request('search') }}"</span> @endif
+        @if(request('jabatan')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Jabatan: {{ request('jabatan') }}</span> @endif
+        @if(request('date_from')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Dari: {{ request('date_from') }}</span> @endif
+        @if(request('date_to')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Sampai: {{ request('date_to') }}</span> @endif
+        <span style="margin-left:0.25rem;">— menampilkan <strong>{{ $attendances->count() }}</strong> peserta</span>
+    </div>
+    @endif
+
 
     <!-- Session Info Header Card -->
     <div style="background: rgba(99, 102, 241, 0.05); border: 1.5px solid rgba(99, 102, 241, 0.15); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
@@ -377,5 +467,19 @@
         sidebar.classList.toggle('open', !isOpen);
         overlay.classList.toggle('active', !isOpen);
     }
+
+    // Export dropdown toggle
+    function toggleExportDropdown() {
+        const menu = document.getElementById('exportDropdownMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    document.addEventListener('click', function(e) {
+        const wrapper = document.getElementById('exportDropdownWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            const menu = document.getElementById('exportDropdownMenu');
+            if (menu) menu.style.display = 'none';
+        }
+    });
+
 </script>
 @endsection

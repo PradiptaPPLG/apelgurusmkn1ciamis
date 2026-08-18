@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\KepsekController;
 
 // Participant Attendance Flow
 Route::get('/', function () {
@@ -36,23 +37,35 @@ Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('admin.l
 Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.submit');
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
-// Admin Dashboard & Management (Protected)
+// Admin Dashboard & Management (Protected – Admin only for write routes)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->middleware('admin.only')->name('dashboard');
 
     // Sessions
-    Route::post('/sessions', [AdminController::class, 'storeSession'])->name('sessions.store');
-    Route::delete('/sessions/{id}', [AdminController::class, 'deleteSession'])->name('sessions.delete');
-    Route::get('/sessions/{id}', [AdminController::class, 'sessionDetail'])->name('sessions.detail');
-    Route::get('/sessions/{id}/export', [AdminController::class, 'exportCSV'])->name('sessions.export');
+    Route::post('/sessions', [AdminController::class, 'storeSession'])->middleware('admin.only')->name('sessions.store');
+    Route::delete('/sessions/{id}', [AdminController::class, 'deleteSession'])->middleware('admin.only')->name('sessions.delete');
+    Route::get('/sessions/{id}', [AdminController::class, 'sessionDetail'])->middleware('admin.only')->name('sessions.detail');
 
-    // Participants CRUD
-    Route::get('/participants', [AdminController::class, 'participants'])->name('participants');
-    Route::post('/participants', [AdminController::class, 'storeParticipant'])->name('participants.store');
-    Route::put('/participants/{nik}', [AdminController::class, 'updateParticipant'])->name('participants.update');
-    Route::delete('/participants/{nik}', [AdminController::class, 'deleteParticipant'])->name('participants.delete');
+    // Export routes (PDF & Excel)
+    Route::get('/sessions/{id}/export-pdf',   [AdminController::class, 'exportPDF'])->middleware('admin.only')->name('sessions.export.pdf');
+    Route::get('/sessions/{id}/export-excel', [AdminController::class, 'exportExcel'])->middleware('admin.only')->name('sessions.export.excel');
 
-    // Apel Location (Geofence)
-    Route::get('/lokasi-apel', [AdminController::class, 'apelLocation'])->name('apel.location');
-    Route::post('/lokasi-apel', [AdminController::class, 'saveApelLocation'])->name('apel.location.save');
+    // Participants CRUD (admin only)
+    Route::get('/participants', [AdminController::class, 'participants'])->middleware('admin.only')->name('participants');
+    Route::post('/participants', [AdminController::class, 'storeParticipant'])->middleware('admin.only')->name('participants.store');
+    Route::put('/participants/{nik}', [AdminController::class, 'updateParticipant'])->middleware('admin.only')->name('participants.update');
+    Route::delete('/participants/{nik}', [AdminController::class, 'deleteParticipant'])->middleware('admin.only')->name('participants.delete');
+
+    // Apel Location (Geofence) – admin only
+    Route::get('/lokasi-apel', [AdminController::class, 'apelLocation'])->middleware('admin.only')->name('apel.location');
+    Route::post('/lokasi-apel', [AdminController::class, 'saveApelLocation'])->middleware('admin.only')->name('apel.location.save');
+});
+
+// Kepala Sekolah Routes (Protected – read-only)
+Route::middleware(['auth'])->prefix('kepsek')->name('kepsek.')->group(function () {
+    Route::get('/dashboard', [KepsekController::class, 'dashboard'])->name('dashboard');
+    Route::get('/participants', [KepsekController::class, 'participants'])->name('participants');
+    Route::get('/sessions/{id}', [KepsekController::class, 'sessionDetail'])->name('sessions.detail');
+    Route::get('/sessions/{id}/export-pdf',   [KepsekController::class, 'exportPDF'])->name('sessions.export.pdf');
+    Route::get('/sessions/{id}/export-excel', [KepsekController::class, 'exportExcel'])->name('sessions.export.excel');
 });

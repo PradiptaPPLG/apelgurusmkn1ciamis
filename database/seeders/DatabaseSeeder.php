@@ -18,8 +18,19 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@apel.com'],
             [
-                'name' => 'Admin Apel SMKN 1 Ciamis',
+                'name'     => 'Admin Apel SMKN 1 Ciamis',
                 'password' => Hash::make('admin123'),
+                'role'     => 'admin',
+            ]
+        );
+
+        // Seed Kepala Sekolah user
+        User::updateOrCreate(
+            ['email' => 'kepsek@apel.com'],
+            [
+                'name'     => 'Kepala Sekolah SMKN 1 Ciamis',
+                'password' => Hash::make('kepsek123'),
+                'role'     => 'kepala_sekolah',
             ]
         );
 

@@ -1,11 +1,9 @@
-{{-- Admin Sidebar Partial --}}
-{{-- Usage: @include('admin.partials.sidebar', ['activePage' => 'dashboard|participants|location']) --}}
-
+{{-- Kepala Sekolah Sidebar Partial --}}
 <aside class="admin-sidebar" id="adminSidebar">
     {{-- Sidebar Header / Brand --}}
     <div class="sidebar-brand">
         <div class="sidebar-brand-icon">
-            <i class="fa-solid fa-flag"></i>
+            <i class="fa-solid fa-school-flag"></i>
         </div>
         <div class="sidebar-brand-text">
             <div class="sidebar-brand-name">Asign</div>
@@ -16,53 +14,37 @@
         </button>
     </div>
 
-    {{-- Admin info --}}
+    {{-- User info --}}
     <div class="sidebar-user">
-        <div class="sidebar-user-avatar">
-            <i class="fa-solid fa-user-shield"></i>
+        <div class="sidebar-user-avatar" style="background: linear-gradient(135deg,#7c3aed,#4f46e5);">
+            <i class="fa-solid fa-user-tie"></i>
         </div>
         <div class="sidebar-user-info">
             <div class="sidebar-user-name">{{ Auth::user()->name }}</div>
-            <div class="sidebar-user-role">
-                {{ Auth::user()->isKepsek() ? 'Kepala Sekolah' : 'Administrator' }}
-            </div>
+            <div class="sidebar-user-role">Kepala Sekolah</div>
         </div>
     </div>
 
     {{-- Navigation --}}
     <nav class="sidebar-nav">
-        <div class="sidebar-nav-label">Menu Utama</div>
+        <div class="sidebar-nav-label">Menu</div>
 
-        <a href="{{ route('admin.dashboard') }}"
+        <a href="{{ route('kepsek.dashboard') }}"
            class="sidebar-nav-item {{ ($activePage ?? '') === 'dashboard' ? 'active' : '' }}">
             <i class="fa-solid fa-gauge-high"></i>
-            <span>Dashboard & Sesi</span>
+            <span>Dashboard</span>
         </a>
 
-        <a href="{{ route('admin.participants') }}"
+        <a href="{{ route('kepsek.participants') }}"
            class="sidebar-nav-item {{ ($activePage ?? '') === 'participants' ? 'active' : '' }}">
             <i class="fa-solid fa-users"></i>
-            <span>Data Guru & Peserta</span>
-        </a>
-
-        <div class="sidebar-nav-label" style="margin-top: 1rem;">Konfigurasi</div>
-
-        <a href="{{ route('admin.apel.location') }}"
-           class="sidebar-nav-item {{ ($activePage ?? '') === 'location' ? 'active' : '' }}">
-            <i class="fa-solid fa-location-dot"></i>
-            <span>Titik Apel</span>
-            @php $loc = \App\Models\ApelLocation::getInstance(); @endphp
-            @if(!$loc->isConfigured())
-                <span class="sidebar-badge-warn" title="Belum dikonfigurasi">!</span>
-            @else
-                <span class="sidebar-badge-ok" title="Sudah dikonfigurasi"><i class="fa-solid fa-check"></i></span>
-            @endif
+            <span>Data Guru &amp; Peserta</span>
         </a>
     </nav>
 
     {{-- Logout at bottom --}}
     <div class="sidebar-footer">
-        <a href="{{ route('apel.index') }}" class="sidebar-nav-item" target="_blank" style="font-size: 0.8rem;">
+        <a href="{{ route('apel.index') }}" class="sidebar-nav-item" target="_blank" style="font-size:0.8rem;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
             <span>Lihat Halaman Absen</span>
         </a>
