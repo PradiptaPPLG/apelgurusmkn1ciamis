@@ -300,21 +300,22 @@ class AdminController extends Controller
     public function saveApelLocation(Request $request)
     {
         $request->validate([
-            'latitude'  => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'label'     => 'nullable|string|max:255',
+            'latitude'     => 'required|numeric|between:-90,90',
+            'longitude'    => 'required|numeric|between:-180,180',
+            'label'        => 'nullable|string|max:255',
+            'radius_meter' => 'required|integer|between:5,50',
         ]);
 
         $location = ApelLocation::getInstance();
         $location->update([
             'latitude'     => $request->latitude,
             'longitude'    => $request->longitude,
-            'radius_meter' => 10, // selalu tetap 10 meter
+            'radius_meter' => $request->radius_meter,
             'label'        => $request->label ?? 'Titik Apel',
             'updated_by'   => Auth::user()->name,
         ]);
 
-        return redirect()->route('admin.apel.location')->with('success', 'Titik apel berhasil disimpan! Koordinat: ' . $request->latitude . ', ' . $request->longitude);
+        return redirect()->route('admin.apel.location')->with('success', 'Titik apel berhasil disimpan! Koordinat: ' . $request->latitude . ', ' . $request->longitude . ' — Radius: ' . $request->radius_meter . 'm');
     }
 
     /**

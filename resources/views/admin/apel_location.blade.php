@@ -153,12 +153,19 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Radius Area Apel</label>
-                            <input type="hidden" name="radius_meter" value="10">
-                            <div style="display:flex;align-items:center;gap:0.65rem;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:0.65rem 1rem;">
-                                <i class="fa-solid fa-circle-check" style="color:#16a34a;"></i>
-                                <span style="font-weight:700;color:#15803d;">10 meter (tetap)</span>
-                                <span style="font-size:0.75rem;color:#6b7280;margin-left:auto;">Radius maksimal dari titik apel</span>
+                            <label class="form-label" for="radius_slider">
+                                Radius Area Apel
+                                <span style="font-weight:700; color:var(--accent-indigo); margin-left:0.4rem;" id="radiusDisplay">{{ $apelLocation->radius_meter ?? 10 }} m</span>
+                            </label>
+                            <input type="range" id="radius_slider" name="radius_meter"
+                                   min="5" max="50" step="1"
+                                   value="{{ old('radius_meter', $apelLocation->radius_meter ?? 10) }}"
+                                   style="width:100%; accent-color:var(--accent-indigo); cursor:pointer; margin: 0.4rem 0;"
+                                   oninput="updateRadius(this.value)">
+                            <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted);">
+                                <span>5 m (ketat)</span>
+                                <span>25 m</span>
+                                <span>50 m (longgar)</span>
                             </div>
                         </div>
 
@@ -227,7 +234,7 @@
     // ── State ─────────────────────────────────────────────────
     var marker       = null;
     var circle       = null;
-    var FIXED_RADIUS = 10;
+    var FIXED_RADIUS = parseInt(document.getElementById('radius_slider').value) || 10;
 
     // ── Custom marker icon ────────────────────────────────────
     var pin = L.divIcon({
@@ -281,7 +288,13 @@
         placeMarker(LAT, LNG);
     }
 
-    // Radius dikunci 10m — tidak ada slider
+    // Radius slider — update lingkaran peta secara live
+    window.updateRadius = function (val) {
+        FIXED_RADIUS = parseInt(val);
+        document.getElementById('radiusDisplay').textContent = val + ' m';
+        document.getElementById('hintRadius').textContent = val;
+        if (circle) circle.setRadius(FIXED_RADIUS);
+    };
 
     // ── Tombol Lokasi Saya ────────────────────────────────────
     window.locateMe = function () {
