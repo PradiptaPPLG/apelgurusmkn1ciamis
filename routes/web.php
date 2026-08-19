@@ -5,6 +5,12 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KepsekController;
 
+// ============================================================
+// ROUTE LOGIN (DEFAULT LARAVEL)
+// ============================================================
+// Laravel auth middleware expects a route named 'login'
+Route::get('/login', [AdminController::class, 'loginForm'])->name('login');
+
 // Participant Attendance Flow
 Route::get('/', function () {
     return redirect()->route('apel.index');
@@ -32,7 +38,7 @@ Route::get('/api/participant/{nik}', function ($nik) {
 // Public API: get apel geofence location (for client-side validation)
 Route::get('/api/apel-location', [AdminController::class, 'getApelLocation'])->name('api.apel.location');
 
-// Admin Authentication
+// Admin Authentication (alias untuk /login sudah di atas)
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.submit');
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
