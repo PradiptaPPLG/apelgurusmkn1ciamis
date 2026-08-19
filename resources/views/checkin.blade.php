@@ -284,10 +284,12 @@ function checkGeofence(userLat, userLon) {
     // Step 3: Kumpulkan bacaan GPS selama GPS_COLLECT_MS, lalu rata-ratakan koordinat
     // dengan bobot berdasarkan akurasi (weighted average). Ini jauh lebih stabil dari
     // sekadar mengambil satu bacaan terbaik, karena noise acak saling menghilangkan.
-    const GPS_COLLECT_MS    = 12000; // kumpulkan selama 12 detik
-    const MAX_ACC_THRESHOLD = 50;    // abaikan bacaan akurasi > 50m (terlalu noisy)
+    const GPS_COLLECT_MS    = 15000; // kumpulkan selama 15 detik
+    const MAX_ACC_THRESHOLD = 100;   // abaikan bacaan akurasi > 100m (dulu 50m, terlalu ketat untuk device desktop/indors)
+    const FALLBACK_THRESHOLD = 150;  // toleransi fallback jika sama sekali tidak dapat sampel akurat
 
     let samples           = [];   // { lat, lon, acc }
+    let fallbackSamples   = [];   // { lat, lon, acc } untuk backup akurasi rendah
     let watchId           = null;
     let gpsSettled        = false;
     let gpsTimer          = null;
@@ -299,7 +301,7 @@ function checkGeofence(userLat, userLon) {
         countdown = Math.max(0, countdown - 1);
         const el = document.querySelector('#gpsLoadingBanner span');
         if (el && !gpsSettled) {
-            el.textContent = `Mengumpulkan data GPS (${samples.length} sampel)... (${countdown}s)`;
+            el.textContent = `Mengumpulkan data GPS (${samples.length || fallbackSamples.length} sampel)... (${countdown}s)`;
         }
         if (countdown <= 0) clearInterval(countdownInterval);
     }, 1000);
@@ -312,11 +314,17 @@ function checkGeofence(userLat, userLon) {
         if (watchId !== null) navigator.geolocation.clearWatch(watchId);
         if (gpsTimer)         clearTimeout(gpsTimer);
 
-        if (samples.length === 0) { onGpsError({ code: 3, message: 'Timeout' }); return; }
+        // Jika sampel utama kosong, coba pakai fallback sampel
+        let finalSamples = samples;
+        if (finalSamples.length === 0) {
+            finalSamples = fallbackSamples;
+        }
+
+        if (finalSamples.length === 0) { onGpsError({ code: 3, message: 'Timeout' }); return; }
 
         // Weighted average — bobot = 1/akurasi (akurasi lebih baik = bobot lebih tinggi)
         let totalW = 0, sumLat = 0, sumLon = 0;
-        for (const s of samples) {
+        for (const s of finalSamples) {
             const w = 1 / s.acc;
             sumLat += s.lat * w;
             sumLon += s.lon * w;
@@ -324,9 +332,9 @@ function checkGeofence(userLat, userLon) {
         }
         const avgLat = sumLat / totalW;
         const avgLon = sumLon / totalW;
-        const avgAcc = Math.round(samples.reduce((a, s) => a + s.acc, 0) / samples.length);
+        const avgAcc = Math.round(finalSamples.reduce((a, s) => a + s.acc, 0) / finalSamples.length);
 
-        console.log(`[GPS] ${samples.length} sampel dirata-rata → lat=${avgLat.toFixed(6)}, lon=${avgLon.toFixed(6)}, ~${avgAcc}m`);
+        console.log(`[GPS] ${finalSamples.length} sampel dirata-rata → lat=${avgLat.toFixed(6)}, lon=${avgLon.toFixed(6)}, ~${avgAcc}m`);
 
         latInput.value = avgLat.toFixed(8);
         lonInput.value = avgLon.toFixed(8);
@@ -366,7 +374,7 @@ function checkGeofence(userLat, userLon) {
 
     function onGpsError(err) {
         // Kalau sudah ada sampel, tetap rata-ratakan daripada error
-        if (samples.length >= 1) { applyAveragedPosition(); return; }
+        if (samples.length >= 1 || fallbackSamples.length >= 1) { applyAveragedPosition(); return; }
         if (gpsSettled) return;
         gpsSettled = true;
 
@@ -378,7 +386,7 @@ function checkGeofence(userLat, userLon) {
         if (err.code === 1) {
             document.getElementById('gpsBlockTitle').textContent = 'Izin Lokasi Ditolak';
             document.getElementById('gpsBlockDesc').textContent  =
-                'Anda menolak akses GPS. Buka pengaturan browser dan izinkan akses lokasi, lalu muat ulang halaman.';
+                'Anda menolak akses GPS. Buka pengaturan browser dan izinkan akses lokasi, lalu refresh halaman.';
         } else if (err.code === 2) {
             document.getElementById('gpsBlockTitle').textContent = 'GPS Tidak Tersedia';
             document.getElementById('gpsBlockDesc').textContent  =
@@ -386,7 +394,7 @@ function checkGeofence(userLat, userLon) {
         } else {
             document.getElementById('gpsBlockTitle').textContent = 'GPS Timeout';
             document.getElementById('gpsBlockDesc').textContent  =
-                'Waktu pencarian lokasi habis. Pastikan GPS aktif, lalu muat ulang halaman.';
+                'Waktu pencarian lokasi habis. Pastikan GPS aktif, lalu refresh halaman.';
         }
         disableSubmit('GPS wajib aktif untuk melakukan absensi.');
     }
@@ -395,26 +403,28 @@ function checkGeofence(userLat, userLon) {
     watchId = navigator.geolocation.watchPosition(
         (pos) => {
             const acc = pos.coords.accuracy;
-            console.log(`[GPS] Bacaan #${samples.length + 1}: akurasi=${Math.round(acc)}m`);
+            console.log(`[GPS] Bacaan #${samples.length + fallbackSamples.length + 1}: akurasi=${Math.round(acc)}m`);
 
-            // Hanya simpan bacaan dengan akurasi layak
+            // Simpan ke sampel utama jika akurasinya baik
             if (acc <= MAX_ACC_THRESHOLD) {
                 samples.push({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc });
+            } else if (acc <= FALLBACK_THRESHOLD) {
+                fallbackSamples.push({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc });
             }
 
-            // Early exit: sudah ≥ 8 sampel dan rata-rata akurasi ≤ 10m — sudah sangat baik
+            // Early exit jika sudah dapat sampel yang bagus
             if (samples.length >= 8) {
                 const avgAcc = samples.reduce((a, s) => a + s.acc, 0) / samples.length;
                 if (avgAcc <= 10) applyAveragedPosition();
             }
         },
         onGpsError,
-        { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
     );
 
     // Setelah GPS_COLLECT_MS, rata-ratakan semua sampel yang sudah terkumpul
     gpsTimer = setTimeout(() => {
-        if (samples.length >= 1) {
+        if (samples.length >= 1 || fallbackSamples.length >= 1) {
             applyAveragedPosition();
         } else if (!gpsSettled) {
             onGpsError({ code: 3, message: 'Timeout' });
