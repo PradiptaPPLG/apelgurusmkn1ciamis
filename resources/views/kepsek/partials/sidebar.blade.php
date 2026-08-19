@@ -3,7 +3,7 @@
     {{-- Sidebar Header / Brand --}}
     <div class="sidebar-brand">
         <div class="sidebar-brand-icon" style="background: none;">
-            <img src="/icons/logoadmin.png" alt="Logo" style="width: 32px; height: 32px; object-fit: contain;">
+            <img src="/icons/logoadmin.png" alt="Logo" style="width: 42px; height: 42px; object-fit: contain;">
         </div>
         <div class="sidebar-brand-text">
             <div class="sidebar-brand-name">Asign</div>
