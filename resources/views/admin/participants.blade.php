@@ -24,10 +24,15 @@
         <div class="admin-content-area">
 
         {{-- Page Header --}}
-        <div class="page-header">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem;">
             <div>
                 <h1 class="page-title"><i class="fa-solid fa-users" style="color: var(--accent-teal);"></i> Data Guru & Peserta</h1>
                 <p class="page-subtitle">Kelola data seluruh guru dan peserta yang terdaftar dalam sistem Asign.</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-secondary" onclick="openImportModal()" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--input-border); font-weight: 600;">
+                    <i class="fa-solid fa-file-excel" style="color: #1f7246; font-size: 1.1rem;"></i> Impor dari Excel
+                </button>
             </div>
         </div>
 
@@ -367,6 +372,33 @@
     </div>
 </div>
 
+<!-- Import Excel Modal Overlay -->
+<div id="importModal" class="modal-backdrop">
+    <div class="modal-content">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--input-border); padding-bottom: 0.5rem;">
+            <h3 style="font-size: 1.25rem;"><i class="fa-solid fa-file-excel" style="color: #1f7246"></i> Impor Data dari Excel</h3>
+            <button type="button" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);" onclick="closeImportModal()">&times;</button>
+        </div>
+
+        <form action="{{ route('admin.participants.import.preview') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            <div class="form-group">
+                <label class="form-label" for="import_file">Pilih File Excel (.xlsx, .xls, .csv)</label>
+                <input type="file" name="file" id="import_file" class="form-control" accept=".xlsx,.xls,.csv" required style="padding: 0.5rem; height: auto;">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;">
+                    Unggah file excel berisi data guru Anda. Sistem akan memindai header kolom dan mencocokkannya secara otomatis pada langkah berikutnya sebelum data disimpan.
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary btn-block" onclick="closeImportModal()">Batal</button>
+                <button type="submit" class="btn btn-primary btn-block">Unggah & Pratinjau</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function toggleSidebar() {
         const sidebar = document.getElementById('adminSidebar');
@@ -378,6 +410,7 @@
 
     const editModal = document.getElementById('editModal');
     const editForm = document.getElementById('editForm');
+    const importModal = document.getElementById('importModal');
     
     function openEditModal(nik, nip, other_id, name, jabatan, jenis_kepegawaian, role, status) {
         document.getElementById('edit_nik').value = nik;
@@ -399,10 +432,21 @@
         editModal.style.display = 'none';
     }
 
+    function openImportModal() {
+        importModal.style.display = 'flex';
+    }
+
+    function closeImportModal() {
+        importModal.style.display = 'none';
+    }
+
     // Close modal when clicking outside content area
     window.addEventListener('click', (e) => {
         if (e.target === editModal) {
             closeEditModal();
+        }
+        if (e.target === importModal) {
+            closeImportModal();
         }
     });
 

@@ -56,6 +56,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/participants', [AdminController::class, 'storeParticipant'])->middleware('admin.only')->name('participants.store');
     Route::put('/participants/{nik}', [AdminController::class, 'updateParticipant'])->middleware('admin.only')->name('participants.update');
     Route::delete('/participants/{nik}', [AdminController::class, 'deleteParticipant'])->middleware('admin.only')->name('participants.delete');
+    Route::post('/participants/import-preview', [AdminController::class, 'importPreview'])->middleware('admin.only')->name('participants.import.preview');
+    Route::post('/participants/import', [AdminController::class, 'import'])->middleware('admin.only')->name('participants.import');
 
     // Apel Location (Geofence) – admin only
     Route::get('/lokasi-apel', [AdminController::class, 'apelLocation'])->middleware('admin.only')->name('apel.location');

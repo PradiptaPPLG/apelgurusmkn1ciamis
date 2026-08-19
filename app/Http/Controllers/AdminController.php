@@ -6,9 +6,11 @@ use App\Models\ApelLocation;
 use App\Models\ApelSession;
 use App\Models\Participant;
 use App\Models\Attendance;
+use App\Services\ParticipantImporter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -414,5 +416,95 @@ class AdminController extends Controller
             'radius_meter' => $loc->radius_meter,
             'label'        => $loc->label,
         ]);
+    }
+
+    /**
+     * Menampilkan halaman pratinjau pemetaan kolom Excel.
+     */
+    public function importPreview(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ], [
+            'file.required' => 'File Excel wajib diunggah.',
+            'file.mimes' => 'Format file harus berupa .xlsx, .xls, atau .csv.',
+            'file.max' => 'Ukuran file tidak boleh lebih dari 5MB.',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $tempPath = $file->store('temp_imports');
+
+            $importer = new ParticipantImporter();
+            $previewData = $importer->getPreviewData(Storage::path($tempPath));
+
+            $dbFields = ParticipantImporter::$dbFields;
+
+            return view('admin.participants_import_preview', compact('tempPath', 'previewData', 'dbFields'));
+        } catch (\Exception $e) {
+            if (isset($tempPath)) {
+                Storage::delete($tempPath);
+            }
+            return redirect()->route('admin.participants')->withErrors([
+                'import' => 'Gagal membaca file Excel. Pastikan format file benar. Detail: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Memproses impor data Excel ke dalam database.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'temp_path' => 'required|string',
+            'mapping' => 'required|array',
+            'duplicate_action' => 'required|in:update,skip',
+            'default_role' => 'required|in:Guru,TU,PPL,PPG,Wali Kelas',
+            'default_status' => 'required|in:aktif,nonaktif',
+        ]);
+
+        $tempPath = $request->temp_path;
+
+        if (!Storage::exists($tempPath)) {
+            return redirect()->route('admin.participants')->withErrors([
+                'import' => 'File sementara tidak ditemukan atau sudah kadaluarsa. Silakan unggah kembali.'
+            ]);
+        }
+
+        if (!in_array('nik', $request->mapping)) {
+            return back()->withErrors(['mapping' => 'Anda wajib memetakan kolom NIK (Kunci Utama).']);
+        }
+        if (!in_array('name', $request->mapping)) {
+            return back()->withErrors(['mapping' => 'Anda wajib memetakan kolom Nama Lengkap.']);
+        }
+
+        try {
+            $importer = new ParticipantImporter();
+            $results = $importer->import(
+                Storage::path($tempPath),
+                $request->mapping,
+                $request->duplicate_action,
+                $request->default_role,
+                $request->default_status
+            );
+
+            Storage::delete($tempPath);
+
+            $message = "Proses impor selesai! Total data diproses: {$results['total']}. " .
+                       "Berhasil ditambahkan: {$results['inserted']}, " .
+                       "Diperbarui: {$results['updated']}, " .
+                       "Dilewati: {$results['skipped']}.";
+
+            if (!empty($results['errors'])) {
+                return redirect()->route('admin.participants')->with('success', $message)->withErrors($results['errors']);
+            }
+
+            return redirect()->route('admin.participants')->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.participants')->withErrors([
+                'import' => 'Terjadi kesalahan sistem saat memproses impor data. Detail: ' . $e->getMessage()
+            ]);
+        }
     }
 }
