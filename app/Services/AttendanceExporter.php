@@ -23,8 +23,8 @@ class AttendanceExporter
      * Build a formatted Excel spreadsheet matching the school's official attendance format.
      *
      * Template selection:
-     *  - PPG/PLP/PPL  → columns: No | Nama | NIM | Program Studi | Tanda Tangan
-     *  - Guru / other → columns: No | Nama | NIP | Jabatan       | Tanda Tangan
+     *  - PPG / PLP / PPL / GEMA UPI → columns: No | Nama | NIM | Program Studi | Tanda Tangan
+     *  - Guru / Wali Kelas / TU     → columns: No | Nama | NIP | Jabatan       | Tanda Tangan
      */
     public static function buildExcel(
         ApelSession $session,
@@ -33,11 +33,26 @@ class AttendanceExporter
     ): Spreadsheet {
 
         // ── Choose template ───────────────────────────────────────────────────
+        // PPG / PLP / PPL / GEMA UPI → NIM + Program Studi columns
+        // Guru / Wali Kelas / TU / other → NIP + Jabatan columns
         $isPPG = in_array(strtolower($jabatanFilter), ['ppl', 'ppg', 'plp', 'gema upi']);
 
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Daftar Hadir');
+
+        // Dynamic sheet tab name and title based on filter
+        if (strtolower($jabatanFilter) === 'wali kelas') {
+            $sheetTabName = 'Wali Kelas';
+            $titleText    = 'DAFTAR HADIR APEL WALI KELAS';
+        } elseif ($isPPG) {
+            $sheetTabName = strtoupper($jabatanFilter) ?: 'PPG/PLP/PPL';
+            $titleText    = 'DAFTAR HADIR APEL ' . strtoupper($jabatanFilter ?: 'PPG/PLP/PPL');
+        } else {
+            $sheetTabName = 'Guru' . ($jabatanFilter ? ' ' . ucwords(strtolower($jabatanFilter)) : '');
+            $titleText    = 'DAFTAR HADIR APEL GURU' . ($jabatanFilter ? ' ' . strtoupper($jabatanFilter) : '');
+        }
+
+        $sheet->setTitle($sheetTabName);
 
         // ── Column widths ─────────────────────────────────────────────────────
         // Column A is kept narrow (No column); logo is a floating image so it
@@ -87,7 +102,7 @@ class AttendanceExporter
         // the image header directly. We call setPath() first (triggers
         // getimagesize to get natural 96×101 dimensions), then setHeight() only
         // to scale proportionally. Avoids the stretching caused by setting both.
-        $logoPath = public_path('icons/logojawabaratheader.png');
+        $logoPath = public_path('icons/logoadmin.png');
         if (file_exists($logoPath) && is_readable($logoPath)) {
             try {
                 $drawing = new Drawing();
@@ -108,7 +123,7 @@ class AttendanceExporter
 
         // ── Title row 9 ───────────────────────────────────────────────────────
         $sheet->mergeCells('A9:E9');
-        $sheet->setCellValue('A9', 'DAFTAR HADIR APEL');
+        $sheet->setCellValue('A9', $titleText);
         $s9 = $sheet->getStyle('A9');
         $s9->getFont()->setBold(true)->setSize(12)->setName('Times New Roman')
             ->setUnderline(Font::UNDERLINE_SINGLE);
@@ -158,13 +173,13 @@ class AttendanceExporter
             $sheet->setCellValue("B{$dataRow}", $p->name ?? $a->participant_nik);
 
             if ($isPPG) {
-                // For PPG/PLP: use NIM (stored in other_id, fallback nik), and jabatan as Program Studi
+                // PPG / PLP / PPL / GEMA UPI: NIM (from other_id) + Program Studi (from jabatan)
                 $nim      = $p->other_id ?? ($p->nip ?? $a->participant_nik);
                 $progStud = $p->jabatan  ?? ($p->role ?? '-');
                 $sheet->setCellValue("C{$dataRow}", $nim);
                 $sheet->setCellValue("D{$dataRow}", $progStud);
             } else {
-                // For Guru/WaliKelas: NIP and Jabatan
+                // Guru / Wali Kelas / TU: NIP + Jabatan
                 $nip     = $p->nip     ?? ($p->other_id ?? '-');
                 $jabatan = $p->jabatan ?? ($p->role      ?? '-');
                 $sheet->setCellValue("C{$dataRow}", $nip);

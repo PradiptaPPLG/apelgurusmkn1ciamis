@@ -285,7 +285,7 @@ class AdminController extends Controller
         // Only embed logo if GD extension is available (DomPDF requires it for image rendering)
         $logoBase64 = null;
         if (extension_loaded('gd')) {
-            $logoPath = public_path('icons/logojawabaratheader.png');
+            $logoPath = public_path('icons/logoadmin.png');
             if (file_exists($logoPath)) {
                 $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
             }
@@ -329,7 +329,7 @@ class AdminController extends Controller
 
         // base64 for browser — no GD needed, browser decodes the image
         $logoBase64 = null;
-        $logoPath   = public_path('icons/logojawabaratheader.png');
+        $logoPath   = public_path('icons/logoadmin.png');
         if (file_exists($logoPath)) {
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
