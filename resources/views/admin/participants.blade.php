@@ -142,9 +142,10 @@
                     <select name="role" id="role" class="form-control form-select" required>
                         <option value="Guru">Guru</option>
                         <option value="TU">Staf TU</option>
-                        <option value="PPL">Peserta PPL</option>
-                        <option value="PPG">Peserta PPG</option>
                         <option value="Wali Kelas">Wali Kelas</option>
+                        <option value="PLP">Peserta PLP</option>
+                        <option value="PPG">Peserta PPG</option>
+                        <option value="PPL">Peserta PPL</option>
                     </select>
                 </div>
 
@@ -178,9 +179,10 @@
                             <option value="">Semua</option>
                             <option value="Guru" {{ request('role') === 'Guru' ? 'selected' : '' }}>Guru</option>
                             <option value="TU" {{ request('role') === 'TU' ? 'selected' : '' }}>Staf TU</option>
-                            <option value="PPL" {{ request('role') === 'PPL' ? 'selected' : '' }}>PPL</option>
-                            <option value="PPG" {{ request('role') === 'PPG' ? 'selected' : '' }}>PPG</option>
                             <option value="Wali Kelas" {{ request('role') === 'Wali Kelas' ? 'selected' : '' }}>Wali Kelas</option>
+                            <option value="PLP" {{ request('role') === 'PLP' ? 'selected' : '' }}>PLP</option>
+                            <option value="PPG" {{ request('role') === 'PPG' ? 'selected' : '' }}>PPG</option>
+                            <option value="PPL" {{ request('role') === 'PPL' ? 'selected' : '' }}>PPL</option>
                         </select>
                     </div>
 
@@ -350,9 +352,10 @@
                 <select name="role" id="edit_role" class="form-control form-select" required>
                     <option value="Guru">Guru</option>
                     <option value="TU">Staf TU</option>
-                    <option value="PPL">Peserta PPL</option>
-                    <option value="PPG">Peserta PPG</option>
                     <option value="Wali Kelas">Wali Kelas</option>
+                    <option value="PLP">Peserta PLP</option>
+                    <option value="PPG">Peserta PPG</option>
+                    <option value="PPL">Peserta PPL</option>
                 </select>
             </div>
 

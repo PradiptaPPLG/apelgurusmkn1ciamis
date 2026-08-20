@@ -33,23 +33,29 @@ class AttendanceExporter
     ): Spreadsheet {
 
         // ── Choose template ───────────────────────────────────────────────────
-        // PPG / PLP / PPL / GEMA UPI → NIM + Program Studi columns
+        // PPG / PLP / PPL / GEMA UPI → NIM + Kategori columns
         // Guru / Wali Kelas / TU / other → NIP + Jabatan columns
-        $isPPG = in_array(strtolower($jabatanFilter), ['ppl', 'ppg', 'plp', 'gema upi']);
+        $jabatanLower = strtolower(trim($jabatanFilter));
+        $isPPG = in_array($jabatanLower, ['ppl', 'ppg', 'plp', 'gema upi']);
+        $isTU  = in_array($jabatanLower, ['tu', 'tutt', 'tut', 'tu tt']);
 
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
         // Dynamic sheet tab name and title based on filter
-        if (strtolower($jabatanFilter) === 'wali kelas') {
+        if ($jabatanLower === 'wali kelas') {
             $sheetTabName = 'Wali Kelas';
             $titleText    = 'DAFTAR HADIR APEL WALI KELAS';
         } elseif ($isPPG) {
-            $sheetTabName = strtoupper($jabatanFilter) ?: 'PPG/PLP/PPL';
-            $titleText    = 'DAFTAR HADIR APEL ' . strtoupper($jabatanFilter ?: 'PPG/PLP/PPL');
+            $catName      = strtoupper($jabatanFilter) ?: 'PLP/PPG';
+            $sheetTabName = $catName;
+            $titleText    = 'DAFTAR HADIR APEL ' . $catName;
+        } elseif ($isTU) {
+            $sheetTabName = 'Tata Usaha';
+            $titleText    = 'DAFTAR HADIR APEL TATA USAHA (TU)';
         } else {
-            $sheetTabName = 'Guru' . ($jabatanFilter ? ' ' . ucwords(strtolower($jabatanFilter)) : '');
-            $titleText    = 'DAFTAR HADIR APEL GURU' . ($jabatanFilter ? ' ' . strtoupper($jabatanFilter) : '');
+            $sheetTabName = 'Guru' . ($jabatanFilter ? ' ' . ucwords($jabatanLower) : '');
+            $titleText    = 'DAFTAR HADIR APEL ' . ($jabatanFilter ? strtoupper($jabatanFilter) : 'GURU');
         }
 
         $sheet->setTitle($sheetTabName);
@@ -102,13 +108,13 @@ class AttendanceExporter
         // the image header directly. We call setPath() first (triggers
         // getimagesize to get natural 96×101 dimensions), then setHeight() only
         // to scale proportionally. Avoids the stretching caused by setting both.
-        $logoPath = public_path('icons/logoadmin.png');
+        $logoPath = public_path('icons/logojawabaratheader.png');
         if (file_exists($logoPath) && is_readable($logoPath)) {
             try {
                 $drawing = new Drawing();
-                $drawing->setName('Logo SMKN 1 Ciamis');
-                $drawing->setPath($logoPath);   // reads 96×101 via getimagesize()
-                $drawing->setHeight(90);        // scale to 90px; width auto ~86px (proportional)
+                $drawing->setName('Logo Pemprov Jabar');
+                $drawing->setPath($logoPath);
+                $drawing->setHeight(90);        // scale to 90px height
                 $drawing->setCoordinates('A1');
                 $drawing->setOffsetX(5);
                 $drawing->setOffsetY(5);
@@ -142,8 +148,8 @@ class AttendanceExporter
         $sheet->getRowDimension(11)->setRowHeight(6);
 
         // ── Table header row 12 ───────────────────────────────────────────────
-        $col3  = $isPPG ? 'NIM'           : 'NIP';
-        $col4  = $isPPG ? 'Program Studi' : 'Jabatan';
+        $col3  = $isPPG ? 'NIM'      : 'NIP';
+        $col4  = $isPPG ? 'Kategori' : 'Jabatan';
         $hdrs  = ['No', 'Nama', $col3, $col4, 'Tanda Tangan'];
         $cols  = ['A',  'B',    'C',   'D',    'E'          ];
 
@@ -173,11 +179,11 @@ class AttendanceExporter
             $sheet->setCellValue("B{$dataRow}", $p->name ?? $a->participant_nik);
 
             if ($isPPG) {
-                // PPG / PLP / PPL / GEMA UPI: NIM (from other_id) + Program Studi (from jabatan)
+                // PPG / PLP / PPL / GEMA UPI: NIM (from other_id or nip) + Kategori (PLP/PPG/PPL)
                 $nim      = $p->other_id ?? ($p->nip ?? $a->participant_nik);
-                $progStud = $p->jabatan  ?? ($p->role ?? '-');
+                $kategori = in_array(strtoupper($p->role ?? ''), ['PLP', 'PPG', 'PPL']) ? strtoupper($p->role) : ($p->jabatan ?? ($p->role ?? '-'));
                 $sheet->setCellValue("C{$dataRow}", $nim);
-                $sheet->setCellValue("D{$dataRow}", $progStud);
+                $sheet->setCellValue("D{$dataRow}", $kategori);
             } else {
                 // Guru / Wali Kelas / TU: NIP + Jabatan
                 $nip     = $p->nip     ?? ($p->other_id ?? '-');

@@ -160,7 +160,7 @@
 <div class="kop">
     <div class="kop-logo">
         @if($logoBase64)
-            <img src="{{ $logoBase64 }}" alt="Logo SMKN 1 Ciamis">
+            <img src="{{ $logoBase64 }}" alt="Logo Pemprov Jawa Barat">
         @endif
     </div>
     <div class="kop-text">
@@ -175,7 +175,25 @@
 </div>
 
 {{-- ===== JUDUL ===== --}}
-<div class="doc-title">DAFTAR HADIR APEL</div>
+@php
+    $jabatanFilter = request('jabatan', '');
+    $jabatanLower  = strtolower(trim($jabatanFilter));
+    $isPPG         = in_array($jabatanLower, ['ppl', 'ppg', 'plp', 'gema upi']);
+    $isTU          = in_array($jabatanLower, ['tu', 'tutt', 'tut', 'tu tt']);
+    
+    if ($jabatanLower === 'wali kelas') {
+        $docTitle = 'DAFTAR HADIR APEL WALI KELAS';
+    } elseif ($isPPG) {
+        $docTitle = 'DAFTAR HADIR APEL ' . strtoupper($jabatanFilter ?: 'PLP/PPG');
+    } elseif ($isTU) {
+        $docTitle = 'DAFTAR HADIR APEL TATA USAHA (TU)';
+    } elseif ($jabatanFilter) {
+        $docTitle = 'DAFTAR HADIR APEL ' . strtoupper($jabatanFilter);
+    } else {
+        $docTitle = 'DAFTAR HADIR APEL';
+    }
+@endphp
+<div class="doc-title">{{ $docTitle }}</div>
 <div class="doc-sub">{{ $session->title }}</div>
 
 {{-- ===== INFO SESI ===== --}}
@@ -215,7 +233,7 @@
 <div class="filter-info">
     <i class="fa-solid fa-filter" style="margin-right:3px;"></i>Filter aktif:
     @if(request()->filled('jabatan'))
-        <span class="badge-filter">Jabatan: {{ request('jabatan') }}</span>
+        <span class="badge-filter">Kategori / Jabatan: {{ request('jabatan') }}</span>
     @endif
     @if(request()->filled('search'))
         <span class="badge-filter">Nama: {{ request('search') }}</span>
@@ -232,19 +250,29 @@
         <tr>
             <th style="width:26px">No</th>
             <th style="width:160px">Nama</th>
-            <th style="width:110px">NIP / NIK</th>
-            <th style="width:100px">Jabatan</th>
+            <th style="width:110px">{{ $isPPG ? 'NIM' : 'NIP / NIK' }}</th>
+            <th style="width:100px">{{ $isPPG ? 'Kategori' : 'Jabatan' }}</th>
             <th style="width:60px">Waktu Hadir</th>
             <th style="width:80px">Tanda Tangan</th>
         </tr>
     </thead>
     <tbody>
         @forelse($attendances as $i => $a)
+        @php
+            $p = $a->participant;
+            $isRowPPG = $isPPG || in_array(strtoupper($p->role ?? ''), ['PLP', 'PPG', 'PPL']);
+            $idNumber = $isRowPPG ? ($p->other_id ?? ($p->nip ?? $a->participant_nik)) : ($p->nip ?? $a->participant_nik);
+            if ($isRowPPG) {
+                $jabatanVal = in_array(strtoupper($p->role ?? ''), ['PLP', 'PPG', 'PPL']) ? strtoupper($p->role) : ($p->jabatan ?? ($p->role ?? '-'));
+            } else {
+                $jabatanVal = $p->jabatan ?? ($p->role ?? '-');
+            }
+        @endphp
         <tr>
             <td class="num">{{ $i + 1 }}</td>
-            <td>{{ $a->participant->name ?? $a->participant_nik }}</td>
-            <td class="center">{{ $a->participant->nip ?? $a->participant_nik }}</td>
-            <td class="center">{{ $a->participant->jabatan ?? ($a->participant->role ?? '-') }}</td>
+            <td>{{ $p->name ?? $a->participant_nik }}</td>
+            <td class="center">{{ $idNumber }}</td>
+            <td class="center">{{ $jabatanVal }}</td>
             <td class="center">{{ $a->signed_in_at->format('H:i') }}</td>
             <td class="td-ttd center"></td>{{-- Tanda Tangan dikosongkan --}}
         </tr>

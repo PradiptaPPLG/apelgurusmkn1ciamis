@@ -98,7 +98,7 @@
                     <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-briefcase"></i> Jabatan</label>
                     <select name="jabatan" onchange="this.form.submit()" style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                         <option value="">Semua Jabatan</option>
-                        @foreach(['Guru','TU','PPL','PPG','Wali Kelas'] as $j)
+                        @foreach(['Guru','TU','Wali Kelas','PLP','PPG'] as $j)
                             <option value="{{ $j }}" {{ request('jabatan') === $j ? 'selected' : '' }}>{{ $j }}</option>
                         @endforeach
                     </select>

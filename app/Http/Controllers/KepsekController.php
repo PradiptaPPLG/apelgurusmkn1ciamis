@@ -74,7 +74,18 @@ class KepsekController extends Controller
             $query->whereHas('participant', fn ($q) => $q->where('name', 'like', "%{$search}%"));
         }
         if ($request->filled('jabatan')) {
-            $query->whereHas('participant', fn ($q) => $q->where('role', $request->jabatan));
+            $j = $request->jabatan;
+            $query->whereHas('participant', function ($q) use ($j) {
+                if (in_array(strtoupper($j), ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                    $q->whereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT']);
+                } elseif (strtoupper($j) === 'PLP') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%'));
+                } elseif (strtoupper($j) === 'PPG') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%'));
+                } else {
+                    $q->where('role', $j);
+                }
+            });
         }
         if ($request->filled('date_from')) {
             $query->whereDate('signed_in_at', '>=', $request->date_from);
@@ -106,7 +117,7 @@ class KepsekController extends Controller
         // Only embed logo if GD extension is available (DomPDF requires it for image rendering)
         $logoBase64 = null;
         if (extension_loaded('gd')) {
-            $logoPath = public_path('icons/logoadmin.png');
+            $logoPath = public_path('icons/logojawabaratheader.png');
             if (file_exists($logoPath)) {
                 $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
             }
@@ -149,7 +160,7 @@ class KepsekController extends Controller
 
         // base64 for browser — no GD needed, browser decodes the image
         $logoBase64 = null;
-        $logoPath   = public_path('icons/logoadmin.png');
+        $logoPath   = public_path('icons/logojawabaratheader.png');
         if (file_exists($logoPath)) {
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
@@ -166,7 +177,18 @@ class KepsekController extends Controller
             $query->whereHas('participant', fn ($q) => $q->where('name', 'like', "%{$s}%"));
         }
         if ($request->filled('jabatan')) {
-            $query->whereHas('participant', fn ($q) => $q->where('role', $request->jabatan));
+            $j = $request->jabatan;
+            $query->whereHas('participant', function ($q) use ($j) {
+                if (in_array(strtoupper($j), ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                    $q->whereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT']);
+                } elseif (strtoupper($j) === 'PLP') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%'));
+                } elseif (strtoupper($j) === 'PPG') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%'));
+                } else {
+                    $q->where('role', $j);
+                }
+            });
         }
         if ($request->filled('date_from')) {
             $query->whereDate('signed_in_at', '>=', $request->date_from);

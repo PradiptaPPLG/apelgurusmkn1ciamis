@@ -517,5 +517,12 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+
+        // ============================================================
+        // 5. SEED PARTICIPANTS FROM EMPLOYEES
+        // ============================================================
+        $this->call([
+            ParticipantFromEmployeeSeeder::class,
+        ]);
     }
 }

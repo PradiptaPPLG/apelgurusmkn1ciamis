@@ -188,7 +188,7 @@ class AdminController extends Controller
             'name'              => 'required|string|max:255',
             'jabatan'           => 'nullable|string|max:255',
             'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
-            'role'              => 'required|in:Guru,TU,PPL,PPG,Wali Kelas',
+            'role'              => 'required|in:Guru,TU,PPL,PPG,PLP,Wali Kelas',
             'status'            => 'required|in:aktif,nonaktif',
         ]);
 
@@ -211,7 +211,7 @@ class AdminController extends Controller
             'name'              => 'required|string|max:255',
             'jabatan'           => 'nullable|string|max:255',
             'jenis_kepegawaian' => 'nullable|in:asn,pns,p3k,honorer,mahasiswa',
-            'role'              => 'required|in:Guru,TU,PPL,PPG,Wali Kelas',
+            'role'              => 'required|in:Guru,TU,PPL,PPG,PLP,Wali Kelas',
             'status'            => 'required|in:aktif,nonaktif',
         ]);
 
@@ -248,7 +248,18 @@ class AdminController extends Controller
 
         // Filter by jabatan (role)
         if ($request->filled('jabatan')) {
-            $query->whereHas('participant', fn ($q) => $q->where('role', $request->jabatan));
+            $j = $request->jabatan;
+            $query->whereHas('participant', function ($q) use ($j) {
+                if (in_array(strtoupper($j), ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                    $q->whereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT']);
+                } elseif (strtoupper($j) === 'PLP') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%'));
+                } elseif (strtoupper($j) === 'PPG') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%'));
+                } else {
+                    $q->where('role', $j);
+                }
+            });
         }
 
         // Filter by date range on signed_in_at
@@ -287,7 +298,7 @@ class AdminController extends Controller
         // Only embed logo if GD extension is available (DomPDF requires it for image rendering)
         $logoBase64 = null;
         if (extension_loaded('gd')) {
-            $logoPath = public_path('icons/logoadmin.png');
+            $logoPath = public_path('icons/logojawabaratheader.png');
             if (file_exists($logoPath)) {
                 $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
             }
@@ -331,7 +342,7 @@ class AdminController extends Controller
 
         // base64 for browser — no GD needed, browser decodes the image
         $logoBase64 = null;
-        $logoPath   = public_path('icons/logoadmin.png');
+        $logoPath   = public_path('icons/logojawabaratheader.png');
         if (file_exists($logoPath)) {
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
@@ -353,7 +364,18 @@ class AdminController extends Controller
             $query->whereHas('participant', fn ($q) => $q->where('name', 'like', "%{$search}%"));
         }
         if ($request->filled('jabatan')) {
-            $query->whereHas('participant', fn ($q) => $q->where('role', $request->jabatan));
+            $j = $request->jabatan;
+            $query->whereHas('participant', function ($q) use ($j) {
+                if (in_array(strtoupper($j), ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                    $q->whereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT']);
+                } elseif (strtoupper($j) === 'PLP') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%'));
+                } elseif (strtoupper($j) === 'PPG') {
+                    $q->where(fn ($sub) => $sub->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%'));
+                } else {
+                    $q->where('role', $j);
+                }
+            });
         }
         if ($request->filled('date_from')) {
             $query->whereDate('signed_in_at', '>=', $request->date_from);

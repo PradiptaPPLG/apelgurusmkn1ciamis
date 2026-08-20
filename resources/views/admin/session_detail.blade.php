@@ -145,7 +145,7 @@
             <select name="jabatan" onchange="this.form.submit()"
                     style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid var(--input-border); border-radius:var(--radius-sm); background:var(--input-bg); color:var(--text-main); font-size:0.88rem;">
                 <option value="">Semua Jabatan</option>
-                @foreach(['Guru','TU','PPL','PPG','Wali Kelas'] as $j)
+                @foreach(['Guru','TU','Wali Kelas','PLP','PPG'] as $j)
                     <option value="{{ $j }}" {{ request('jabatan') === $j ? 'selected' : '' }}>{{ $j }}</option>
                 @endforeach
             </select>
