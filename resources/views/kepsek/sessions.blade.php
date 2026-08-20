@@ -11,13 +11,8 @@
 
     <div class="admin-main">
 
-        {{-- Mobile Topbar --}}
-        <header class="admin-mobile-topbar">
-            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Buka Menu Sidebar">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <span class="mobile-topbar-title"><i class="fa-solid fa-calendar-check"></i> Sesi Apel</span>
-        </header>
+        {{-- Global Topbar --}}
+        @include('admin.partials.topbar')
 
         <div class="admin-content-area">
 

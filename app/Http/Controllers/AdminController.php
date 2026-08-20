@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\ApelLocation;
 use App\Models\ApelSession;
+use App\Models\AppSetting;
 use App\Models\Participant;
 use App\Models\Attendance;
 use App\Services\ParticipantImporter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
@@ -188,8 +190,9 @@ class AdminController extends Controller
             ->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
             ->paginate(10);
+        $appSetting = AppSetting::getInstance();
 
-        return view('admin.sessions', compact('sessions'));
+        return view('admin.sessions', compact('sessions', 'appSetting'));
     }
 
     /**
@@ -771,5 +774,124 @@ class AdminController extends Controller
             'logoBase64' => $logoBase64,
             'isPreview'  => true
         ]));
+    }
+
+    /**
+     * Tampilkan halaman Profil Admin (Ganti Nama & Email).
+     */
+    public function profileForm()
+    {
+        $user = Auth::user();
+        return view('admin.profile', compact('user'));
+    }
+
+    /**
+     * Update data profil Admin (Nama, Email).
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        ], [
+            'name.required'  => 'Nama Lengkap wajib diisi.',
+            'email.required' => 'Email / Username login wajib diisi.',
+            'email.email'    => 'Format email tidak valid.',
+            'email.unique'   => 'Email ini sudah digunakan oleh akun lain.',
+        ]);
+
+        $user->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return redirect()->route('admin.profile')->with('success', 'Profil admin berhasil diperbarui!');
+    }
+
+    /**
+     * Update / Ganti Password Admin.
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'password.required'         => 'Password baru wajib diisi.',
+            'password.min'              => 'Password baru minimal harus 6 karakter.',
+            'password.confirmed'        => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini salah. Silakan coba lagi.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('admin.profile')->with('success_password', 'Password berhasil diganti! Gunakan password baru untuk login berikutnya.');
+    }
+
+    /**
+     * Tampilkan halaman Pengaturan Aplikasi & Apel.
+     */
+    public function settingsForm()
+    {
+        $appSetting   = AppSetting::getInstance();
+        $apelLocation = ApelLocation::getInstance();
+        return view('admin.settings', compact('appSetting', 'apelLocation'));
+    }
+
+    /**
+     * Update Pengaturan Aplikasi & Apel.
+     */
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'school_name'        => 'required|string|max:255',
+            'app_name'           => 'required|string|max:255',
+            'school_address'     => 'nullable|string|max:500',
+            'default_pagi_start' => 'required',
+            'default_pagi_end'   => 'required|after:default_pagi_start',
+            'default_sore_start' => 'required',
+            'default_sore_end'   => 'required|after:default_sore_start',
+            'default_radius'     => 'required|integer|min:5|max:1000',
+            'kepsek_name'        => 'required|string|max:255',
+            'kepsek_nip'         => 'required|string|max:100',
+            'kepsek_pangkat'     => 'nullable|string|max:100',
+        ], [
+            'school_name.required'        => 'Nama Sekolah wajib diisi.',
+            'default_pagi_start.required' => 'Jam mulai apel pagi wajib diisi.',
+            'default_pagi_end.required'   => 'Jam selesai apel pagi wajib diisi.',
+            'default_pagi_end.after'      => 'Jam selesai apel pagi harus setelah jam mulai.',
+            'default_sore_start.required' => 'Jam mulai apel sore wajib diisi.',
+            'default_sore_end.required'   => 'Jam selesai apel sore wajib diisi.',
+            'default_sore_end.after'      => 'Jam selesai apel sore harus setelah jam mulai.',
+            'kepsek_name.required'        => 'Nama Kepala Sekolah wajib diisi untuk penandatangan laporan.',
+            'kepsek_nip.required'         => 'NIP Kepala Sekolah wajib diisi.',
+        ]);
+
+        $appSetting = AppSetting::getInstance();
+        $appSetting->update($request->only([
+            'school_name',
+            'app_name',
+            'school_address',
+            'default_pagi_start',
+            'default_pagi_end',
+            'default_sore_start',
+            'default_sore_end',
+            'default_radius',
+            'kepsek_name',
+            'kepsek_nip',
+            'kepsek_pangkat',
+        ]));
+
+        return redirect()->route('admin.settings')->with('success', 'Pengaturan aplikasi & sesi apel berhasil disimpan!');
     }
 }

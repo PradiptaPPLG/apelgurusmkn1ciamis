@@ -8,6 +8,8 @@ use App\Models\Participant;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class KepsekController extends Controller
 {
@@ -437,5 +439,67 @@ class KepsekController extends Controller
             'logoBase64' => $logoBase64,
             'isPreview'  => true
         ]));
+    }
+
+    /**
+     * Tampilkan halaman Profil Kepala Sekolah.
+     */
+    public function profileForm()
+    {
+        $user = Auth::user();
+        return view('kepsek.profile', compact('user'));
+    }
+
+    /**
+     * Update data profil Kepala Sekolah (Nama, Email).
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        ], [
+            'name.required'  => 'Nama Lengkap wajib diisi.',
+            'email.required' => 'Email / Username login wajib diisi.',
+            'email.email'    => 'Format email tidak valid.',
+            'email.unique'   => 'Email ini sudah digunakan oleh akun lain.',
+        ]);
+
+        $user->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+        ]);
+
+        return redirect()->route('kepsek.profile')->with('success', 'Profil Kepala Sekolah berhasil diperbarui!');
+    }
+
+    /**
+     * Update / Ganti Password Kepala Sekolah.
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Password saat ini wajib diisi.',
+            'password.required'         => 'Password baru wajib diisi.',
+            'password.min'              => 'Password baru minimal harus 6 karakter.',
+            'password.confirmed'        => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini salah. Silakan coba lagi.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('kepsek.profile')->with('success_password', 'Password berhasil diganti! Gunakan password baru untuk login berikutnya.');
     }
 }

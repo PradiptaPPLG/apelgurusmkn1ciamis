@@ -81,6 +81,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/rekap-bulanan/export-excel', [AdminController::class, 'exportRekapExcel'])->middleware('admin.only')->name('rekap.export.excel');
     Route::get('/rekap-bulanan/export-pdf',   [AdminController::class, 'exportRekapPDF'])->middleware('admin.only')->name('rekap.export.pdf');
     Route::get('/rekap-bulanan/preview',      [AdminController::class, 'previewRekapHTML'])->middleware('admin.only')->name('rekap.preview');
+
+    // Profile & Password (Admin)
+    Route::get('/profil',             [AdminController::class, 'profileForm'])->middleware('admin.only')->name('profile');
+    Route::put('/profil',             [AdminController::class, 'updateProfile'])->middleware('admin.only')->name('profile.update');
+    Route::put('/profil/password',    [AdminController::class, 'updatePassword'])->middleware('admin.only')->name('profile.password.update');
+
+    // System Settings (Admin only)
+    Route::get('/pengaturan',         [AdminController::class, 'settingsForm'])->middleware('admin.only')->name('settings');
+    Route::put('/pengaturan',         [AdminController::class, 'updateSettings'])->middleware('admin.only')->name('settings.update');
 });
 
 // Kepala Sekolah Routes (Protected – read-only)
@@ -98,4 +107,9 @@ Route::middleware(['auth'])->prefix('kepsek')->name('kepsek.')->group(function (
     Route::get('/rekap-bulanan/export-excel', [KepsekController::class, 'exportRekapExcel'])->name('rekap.export.excel');
     Route::get('/rekap-bulanan/export-pdf',   [KepsekController::class, 'exportRekapPDF'])->name('rekap.export.pdf');
     Route::get('/rekap-bulanan/preview',      [KepsekController::class, 'previewRekapHTML'])->name('rekap.preview');
+
+    // Profile & Password (Kepsek)
+    Route::get('/profil',             [KepsekController::class, 'profileForm'])->name('profile');
+    Route::put('/profil',             [KepsekController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profil/password',    [KepsekController::class, 'updatePassword'])->name('profile.password.update');
 });

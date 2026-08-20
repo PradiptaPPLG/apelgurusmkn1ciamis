@@ -14,10 +14,25 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class AttendanceExporter
 {
-    // Kepala Sekolah info (hardcoded per school data)
-    const KEPSEK_NAME  = 'H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.';
-    const KEPSEK_GOLOK = 'Penata Tk. I/III/d';
-    const KEPSEK_NIP   = 'NIP. 198408252010011010';
+    // Kepala Sekolah info fallback constants
+    const KEPSEK_NAME  = 'Drs. H. Asep Gunawan, M.Pd.';
+    const KEPSEK_GOLOK = 'Pembina Utama Muda / IV c';
+    const KEPSEK_NIP   = '19680512 199403 1 005';
+
+    public static function getKepsekName(): string
+    {
+        return \App\Models\AppSetting::getInstance()->kepsek_name ?: self::KEPSEK_NAME;
+    }
+
+    public static function getKepsekGolok(): string
+    {
+        return \App\Models\AppSetting::getInstance()->kepsek_pangkat ?: self::KEPSEK_GOLOK;
+    }
+
+    public static function getKepsekNip(): string
+    {
+        return \App\Models\AppSetting::getInstance()->kepsek_nip ?: self::KEPSEK_NIP;
+    }
 
     /**
      * Build a formatted Excel spreadsheet matching the school's official attendance format.
@@ -239,7 +254,7 @@ class AttendanceExporter
 
         // Kepala Sekolah name (bold + underline)
         $sheet->mergeCells("C{$sigRow}:E{$sigRow}");
-        $sheet->setCellValue("C{$sigRow}", self::KEPSEK_NAME);
+        $sheet->setCellValue("C{$sigRow}", self::getKepsekName());
         $nsStyle = $sheet->getStyle("C{$sigRow}");
         $nsStyle->getFont()->setBold(true)->setUnderline(Font::UNDERLINE_SINGLE)
             ->setName('Times New Roman')->setSize(10);
@@ -248,7 +263,7 @@ class AttendanceExporter
         // Pangkat/Golongan
         $sigRow++;
         $sheet->mergeCells("C{$sigRow}:E{$sigRow}");
-        $sheet->setCellValue("C{$sigRow}", self::KEPSEK_GOLOK);
+        $sheet->setCellValue("C{$sigRow}", self::getKepsekGolok());
         $sheet->getStyle("C{$sigRow}")->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("C{$sigRow}")->getFont()->setName('Times New Roman')->setSize(10);
@@ -256,7 +271,7 @@ class AttendanceExporter
         // NIP
         $sigRow++;
         $sheet->mergeCells("C{$sigRow}:E{$sigRow}");
-        $sheet->setCellValue("C{$sigRow}", self::KEPSEK_NIP);
+        $sheet->setCellValue("C{$sigRow}", 'NIP. ' . self::getKepsekNip());
         $sheet->getStyle("C{$sigRow}")->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("C{$sigRow}")->getFont()->setName('Times New Roman')->setSize(10);
@@ -495,18 +510,18 @@ class AttendanceExporter
 
         $sigRow += 4; // Space for signature
         $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
-        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::KEPSEK_NAME);
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::getKepsekName());
         $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getFont()->setBold(true)->setUnderline(true);
 
         $sigRow++;
         $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
-        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::KEPSEK_GOLOK);
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::getKepsekGolok());
         $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $sigRow++;
         $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
-        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::KEPSEK_NIP);
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", 'NIP. ' . self::getKepsekNip());
         $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $spreadsheet->getDefaultStyle()->getFont()->setName('Times New Roman')->setSize(9.5);

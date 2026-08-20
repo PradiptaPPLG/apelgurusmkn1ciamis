@@ -16,19 +16,6 @@
         </button>
     </div>
 
-    {{-- Admin info --}}
-    <div class="sidebar-user">
-        <div class="sidebar-user-avatar" style="background: rgba(99, 102, 241, 0.1); color: #4f46e5;">
-            <i class="fa-solid fa-user-shield"></i>
-        </div>
-        <div class="sidebar-user-info">
-            <div class="sidebar-user-name">{{ Auth::user()->name }}</div>
-            <div class="sidebar-user-role">
-                {{ Auth::user()->isKepsek() ? 'Kepala Sekolah' : 'Administrator' }}
-            </div>
-        </div>
-    </div>
-
     {{-- Navigation --}}
     <nav class="sidebar-nav">
         <div class="sidebar-nav-label">Menu Utama</div>
@@ -72,19 +59,12 @@
         </a>
     </nav>
 
-    {{-- Logout at bottom --}}
+    {{-- Footer link at bottom --}}
     <div class="sidebar-footer">
         <a href="{{ route('apel.index') }}" class="sidebar-nav-item" target="_blank" style="font-size: 0.8rem;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
             <span>Lihat Halaman Absen</span>
         </a>
-        <form action="{{ route('admin.logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="sidebar-logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Keluar</span>
-            </button>
-        </form>
     </div>
 </aside>
 

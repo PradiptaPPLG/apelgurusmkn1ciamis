@@ -251,9 +251,9 @@
             <div>Ciamis, {{ \App\Services\AttendanceExporter::formatDateSimpleId(\Carbon\Carbon::now()) }}</div>
             <div>Kepala Sekolah,</div>
             <div class="sig-space"></div>
-            <div class="sig-name">{{ \App\Services\AttendanceExporter::KEPSEK_NAME }}</div>
-            <div>{{ \App\Services\AttendanceExporter::KEPSEK_GOLOK }}</div>
-            <div class="sig-nip">NIP. {{ \App\Services\AttendanceExporter::KEPSEK_NIP }}</div>
+            <div class="sig-name">{{ \App\Services\AttendanceExporter::getKepsekName() }}</div>
+            <div>{{ \App\Services\AttendanceExporter::getKepsekGolok() }}</div>
+            <div class="sig-nip">NIP. {{ \App\Services\AttendanceExporter::getKepsekNip() }}</div>
         </div>
     </div>
 

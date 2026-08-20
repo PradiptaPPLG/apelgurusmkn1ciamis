@@ -12,13 +12,8 @@
     {{-- Main Content Area --}}
     <div class="admin-main">
 
-        {{-- Mobile Topbar --}}
-        <header class="admin-mobile-topbar">
-            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Buka Menu Sidebar">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <span class="mobile-topbar-title"><i class="fa-solid fa-calendar-check"></i> Sesi Apel</span>
-        </header>
+        {{-- Global Topbar --}}
+        @include('admin.partials.topbar')
 
         <div class="admin-content-area">
 
@@ -233,8 +228,8 @@
 
 <script>
 const defaultTimes = {
-    pagi: { start: '06:20', end: '06:40' },
-    sore: { start: '14:50', end: '15:20' },
+    pagi: { start: '{{ $appSetting->default_pagi_start ?? "06:20" }}', end: '{{ $appSetting->default_pagi_end ?? "06:40" }}' },
+    sore: { start: '{{ $appSetting->default_sore_start ?? "14:50" }}', end: '{{ $appSetting->default_sore_end ?? "15:20" }}' },
 };
 
 function autoFillTime(type) {

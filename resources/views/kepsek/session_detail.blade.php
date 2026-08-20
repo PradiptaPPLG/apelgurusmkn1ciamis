@@ -37,12 +37,8 @@
 
     <div class="admin-main">
 
-        <header class="admin-mobile-topbar">
-            <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <span class="mobile-topbar-title"><i class="fa-solid fa-clipboard-list"></i> Detail Presensi</span>
-        </header>
+        {{-- Global Topbar --}}
+        @include('admin.partials.topbar')
 
         <div class="admin-content-area">
 
