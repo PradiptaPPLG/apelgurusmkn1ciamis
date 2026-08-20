@@ -90,13 +90,13 @@
             <form method="GET" action="{{ route('kepsek.sessions.detail', $session->id) }}" id="filterForm"
                   style="background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
                 <div style="flex:1;min-width:160px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama</label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama lalu Enter..."
+                    <label for="kepsek_filter_search" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama</label>
+                    <input type="text" name="search" id="kepsek_filter_search" aria-label="Cari Nama Peserta" value="{{ request('search') }}" placeholder="Ketik nama lalu Enter..."
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="min-width:150px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-briefcase"></i> Jabatan</label>
-                    <select name="jabatan" onchange="this.form.submit()" style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
+                    <label for="kepsek_filter_jabatan" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-briefcase"></i> Jabatan</label>
+                    <select name="jabatan" id="kepsek_filter_jabatan" aria-label="Pilih Jabatan" onchange="this.form.submit()" style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                         <option value="">Semua Jabatan</option>
                         @foreach(['Guru','TU','Wali Kelas','PLP','PPG'] as $j)
                             <option value="{{ $j }}" {{ request('jabatan') === $j ? 'selected' : '' }}>{{ $j }}</option>
@@ -104,13 +104,13 @@
                     </select>
                 </div>
                 <div style="min-width:140px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Dari Tanggal</label>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" onchange="this.form.submit()"
+                    <label for="kepsek_filter_date_from" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Dari Tanggal</label>
+                    <input type="date" name="date_from" id="kepsek_filter_date_from" aria-label="Dari Tanggal" value="{{ request('date_from') }}" onchange="this.form.submit()"
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="min-width:140px;">
-                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Sampai Tanggal</label>
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" onchange="this.form.submit()"
+                    <label for="kepsek_filter_date_to" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Sampai Tanggal</label>
+                    <input type="date" name="date_to" id="kepsek_filter_date_to" aria-label="Sampai Tanggal" value="{{ request('date_to') }}" onchange="this.form.submit()"
                            style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:flex-end;">
@@ -299,7 +299,7 @@
             <h3 id="imageModalTitle" style="font-size:1.15rem;color:var(--text-main);">Detail Lampiran</h3>
             <button type="button" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);" onclick="closeImageModal()">&times;</button>
         </div>
-        <img id="imageModalTarget" style="width:100%;border:1.5px solid var(--input-border);border-radius:var(--radius-md);background:white;max-height:300px;object-fit:contain;">
+        <img id="imageModalTarget" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E" alt="Pratinjau Foto Lampiran" style="width:100%;border:1.5px solid var(--input-border);border-radius:var(--radius-md);background:white;max-height:300px;object-fit:contain;">
         <button type="button" class="btn btn-secondary btn-block" style="margin-top:1.5rem;" onclick="closeImageModal()">Tutup</button>
     </div>
 </div>
@@ -321,6 +321,7 @@ const imageModal = document.getElementById('imageModal');
 const imageModalTarget = document.getElementById('imageModalTarget');
 const imageModalTitle = document.getElementById('imageModalTitle');
 const mapModal = document.getElementById('mapModal');
+const defaultPlaceholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E";
 
 function showImageZoom(src, title) {
     imageModalTarget.src = src;
@@ -329,7 +330,7 @@ function showImageZoom(src, title) {
 }
 function closeImageModal() {
     imageModal.style.display = 'none';
-    imageModalTarget.src = '';
+    imageModalTarget.src = defaultPlaceholderImg;
 }
 
 let leafletMap = null;

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="@yield('meta-description', 'Aplikasi Presensi Apel Pagi Guru dan Tenaga Kependidikan SMK Negeri 1 Ciamis.')">
+    <link rel="canonical" href="{{ url()->current() }}">
     <title>@yield('title', 'Apel Guru SMKN 1 Ciamis')</title>
     
     <!-- PWA Settings -->
