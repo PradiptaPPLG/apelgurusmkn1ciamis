@@ -68,6 +68,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Apel Location (Geofence) – admin only
     Route::get('/lokasi-apel', [AdminController::class, 'apelLocation'])->middleware('admin.only')->name('apel.location');
     Route::post('/lokasi-apel', [AdminController::class, 'saveApelLocation'])->middleware('admin.only')->name('apel.location.save');
+
+    // Monthly Recap (Admin)
+    Route::get('/rekap-bulanan',              [AdminController::class, 'rekapBulanan'])->middleware('admin.only')->name('rekap.index');
+    Route::get('/rekap-bulanan/export-excel', [AdminController::class, 'exportRekapExcel'])->middleware('admin.only')->name('rekap.export.excel');
+    Route::get('/rekap-bulanan/export-pdf',   [AdminController::class, 'exportRekapPDF'])->middleware('admin.only')->name('rekap.export.pdf');
+    Route::get('/rekap-bulanan/preview',      [AdminController::class, 'previewRekapHTML'])->middleware('admin.only')->name('rekap.preview');
 });
 
 // Kepala Sekolah Routes (Protected – read-only)
@@ -78,4 +84,10 @@ Route::middleware(['auth'])->prefix('kepsek')->name('kepsek.')->group(function (
     Route::get('/sessions/{id}/export-pdf',   [KepsekController::class, 'exportPDF'])->name('sessions.export.pdf');
     Route::get('/sessions/{id}/export-excel', [KepsekController::class, 'exportExcel'])->name('sessions.export.excel');
     Route::get('/sessions/{id}/preview',      [KepsekController::class, 'previewHTML'])->name('sessions.preview');
+
+    // Monthly Recap (Kepsek)
+    Route::get('/rekap-bulanan',              [KepsekController::class, 'rekapBulanan'])->name('rekap.index');
+    Route::get('/rekap-bulanan/export-excel', [KepsekController::class, 'exportRekapExcel'])->name('rekap.export.excel');
+    Route::get('/rekap-bulanan/export-pdf',   [KepsekController::class, 'exportRekapPDF'])->name('rekap.export.pdf');
+    Route::get('/rekap-bulanan/preview',      [KepsekController::class, 'previewRekapHTML'])->name('rekap.preview');
 });

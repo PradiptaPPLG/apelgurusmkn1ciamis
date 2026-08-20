@@ -79,13 +79,89 @@ class AdminController extends Controller
             ->orderBy('start_time', 'desc')
             ->paginate(10);
 
+        // ── Analytics for Visual Charts ──────────────────────────────────────
+        // 1. Trend last 7 sessions
+        $trendSessions = ApelSession::withCount('attendances')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->limit(7)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $chartLabels = [];
+        $chartData   = [];
+        $chartRates  = [];
+
+        foreach ($trendSessions as $ts) {
+            $dateFormatted = Carbon::parse($ts->date)->format('d/m');
+            $chartLabels[] = $dateFormatted . ' (' . $ts->code . ')';
+            $chartData[]   = $ts->attendances_count;
+            $rate = $activeParticipants > 0 ? round(($ts->attendances_count / $activeParticipants) * 100, 1) : 0;
+            $chartRates[]  = $rate;
+        }
+
+        // 2. Category distribution of attendances in current month
+        $currentMonth = Carbon::now()->month;
+        $currentYear  = Carbon::now()->year;
+
+        $categoryCounts = [
+            'Guru'       => 0,
+            'TU'         => 0,
+            'Wali Kelas' => 0,
+            'PLP'        => 0,
+            'PPG'        => 0,
+        ];
+
+        $attendancesThisMonth = Attendance::whereMonth('signed_in_at', $currentMonth)
+            ->whereYear('signed_in_at', $currentYear)
+            ->with('participant')
+            ->get();
+
+        foreach ($attendancesThisMonth as $att) {
+            $pRole = $att->participant->role ?? 'Guru';
+            $pRoleLower = strtolower(trim($pRole));
+
+            if ($pRoleLower === 'guru') {
+                $categoryCounts['Guru']++;
+            } elseif (in_array($pRoleLower, ['tu', 'tutt', 'tut', 'tu tt'])) {
+                $categoryCounts['TU']++;
+            } elseif ($pRoleLower === 'wali kelas') {
+                $categoryCounts['Wali Kelas']++;
+            } elseif (in_array($pRoleLower, ['plp', 'ppl'])) {
+                $categoryCounts['PLP']++;
+            } elseif ($pRoleLower === 'ppg') {
+                $categoryCounts['PPG']++;
+            } else {
+                $categoryCounts['Guru']++;
+            }
+        }
+
+        // 3. Top 5 Most Disciplined Participants (Highest attendance in last 30 days)
+        $topParticipants = Attendance::where('signed_in_at', '>=', Carbon::now()->subDays(30))
+            ->selectRaw('participant_nik, COUNT(*) as total_attendance, MIN(signed_in_at) as earliest')
+            ->groupBy('participant_nik')
+            ->orderByDesc('total_attendance')
+            ->limit(5)
+            ->with('participant')
+            ->get();
+
+        // 4. Overall average attendance rate
+        $avgAttendanceRate = count($chartRates) > 0 ? round(array_sum($chartRates) / count($chartRates), 1) : 0;
+
         return view('admin.dashboard', compact(
             'totalParticipants',
             'activeParticipants',
             'totalSessions',
             'todayAttendances',
             'sessions',
-            'apelLocation'
+            'apelLocation',
+            'chartLabels',
+            'chartData',
+            'chartRates',
+            'categoryCounts',
+            'topParticipants',
+            'avgAttendanceRate'
         ));
     }
 
@@ -528,5 +604,145 @@ class AdminController extends Controller
                 'import' => 'Terjadi kesalahan sistem saat memproses impor data. Detail: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Helper to prepare monthly recap matrix data.
+     */
+    protected function getRekapData(Request $request)
+    {
+        $month = (int) $request->get('month', Carbon::now()->month);
+        $year  = (int) $request->get('year', Carbon::now()->year);
+        $jabatan = $request->get('jabatan', '');
+
+        // 1. Get all sessions in the selected month & year
+        $sessions = ApelSession::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        // 2. Query participants
+        $pQuery = Participant::where('status', 'aktif');
+
+        if ($jabatan) {
+            $jLower = strtolower(trim($jabatan));
+            if ($jLower === 'guru') {
+                $pQuery->where(function ($q) {
+                    $q->where('role', 'Guru')->orWhere('jabatan', 'like', '%Guru%');
+                });
+            } elseif (in_array($jLower, ['tu', 'tutt', 'tut', 'tu tt'])) {
+                $pQuery->where(function ($q) {
+                    $q->whereIn('role', ['TU', 'TUT', 'TUTT', 'TU TT'])
+                      ->orWhere('jabatan', 'like', '%Tata Usaha%')
+                      ->orWhere('jabatan', 'like', '%Pengadministrasi%')
+                      ->orWhere('jenis_kepegawaian', 'TU');
+                });
+            } elseif ($jLower === 'wali kelas') {
+                $pQuery->where(function ($q) {
+                    $q->where('role', 'Wali Kelas')->orWhere('jabatan', 'like', '%Wali Kelas%');
+                });
+            } elseif ($jLower === 'plp') {
+                $pQuery->where(function ($q) {
+                    $q->whereIn('role', ['PLP', 'PPL'])->orWhere('jabatan', 'like', '%PLP%')->orWhere('jabatan', 'like', '%PPL%');
+                });
+            } elseif ($jLower === 'ppg') {
+                $pQuery->where(function ($q) {
+                    $q->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%');
+                });
+            } else {
+                $pQuery->where(function ($q) use ($jabatan) {
+                    $q->where('role', $jabatan)->orWhere('jabatan', 'like', "%{$jabatan}%");
+                });
+            }
+        }
+
+        $participants = $pQuery->orderBy('name', 'asc')->get();
+
+        // 3. Build Attendance Matrix
+        $sessionIds = $sessions->pluck('id')->toArray();
+        $attendances = Attendance::whereIn('apel_session_id', $sessionIds)->get();
+
+        $matrix = [];
+        foreach ($attendances as $att) {
+            $matrix[$att->participant_nik][$att->apel_session_id] = $att;
+        }
+
+        return compact('month', 'year', 'jabatan', 'sessions', 'participants', 'matrix');
+    }
+
+    /**
+     * Display Monthly Recap Matrix page.
+     */
+    public function rekapBulanan(Request $request)
+    {
+        $data = $this->getRekapData($request);
+        return view('admin.rekap_bulanan', $data);
+    }
+
+    /**
+     * Export Monthly Recap to Excel.
+     */
+    public function exportRekapExcel(Request $request)
+    {
+        $data = $this->getRekapData($request);
+        $spreadsheet = \App\Services\AttendanceExporter::buildMonthlyRecapExcel(
+            $data['month'],
+            $data['year'],
+            $data['jabatan'],
+            $data['sessions'],
+            $data['participants'],
+            $data['matrix']
+        );
+
+        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = "Rekap_Apel_Bulan_{$data['month']}_{$data['year']}.xlsx";
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Export Monthly Recap to PDF (Landscape A4).
+     */
+    public function exportRekapPDF(Request $request)
+    {
+        $data = $this->getRekapData($request);
+
+        $logoBase64 = null;
+        if (extension_loaded('gd')) {
+            $logoPath = public_path('icons/logojawabaratheader.png');
+            if (file_exists($logoPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.monthly_rekap_pdf', array_merge($data, ['logoBase64' => $logoBase64]))
+            ->setPaper('a4', 'landscape');
+
+        $filename = "Rekap_Apel_Bulan_{$data['month']}_{$data['year']}.pdf";
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Preview Monthly Recap as HTML in browser.
+     */
+    public function previewRekapHTML(Request $request)
+    {
+        $data = $this->getRekapData($request);
+
+        $logoBase64 = null;
+        $logoPath   = public_path('icons/logojawabaratheader.png');
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+
+        return view('exports.monthly_rekap_pdf', array_merge($data, [
+            'logoBase64' => $logoBase64,
+            'isPreview'  => true
+        ]));
     }
 }

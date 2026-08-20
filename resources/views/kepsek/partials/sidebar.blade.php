@@ -40,6 +40,12 @@
             <i class="fa-solid fa-users"></i>
             <span>Data Guru &amp; Peserta</span>
         </a>
+
+        <a href="{{ route('kepsek.rekap.index') }}"
+           class="sidebar-nav-item {{ ($activePage ?? '') === 'rekap' ? 'active' : '' }}">
+            <i class="fa-solid fa-table-list"></i>
+            <span>Rekap Bulanan</span>
+        </a>
     </nav>
 
     {{-- Logout at bottom --}}

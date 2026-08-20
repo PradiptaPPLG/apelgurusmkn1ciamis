@@ -45,6 +45,12 @@
             <span>Data Guru & Peserta</span>
         </a>
 
+        <a href="{{ route('admin.rekap.index') }}"
+           class="sidebar-nav-item {{ ($activePage ?? '') === 'rekap' ? 'active' : '' }}">
+            <i class="fa-solid fa-table-list"></i>
+            <span>Rekap Bulanan</span>
+        </a>
+
         <div class="sidebar-nav-label" style="margin-top: 1rem;">Konfigurasi</div>
 
         <a href="{{ route('admin.apel.location') }}"

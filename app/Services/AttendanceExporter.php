@@ -268,6 +268,253 @@ class AttendanceExporter
     }
 
     /**
+     * Build Monthly Recap Matrix Excel spreadsheet.
+     */
+    public static function buildMonthlyRecapExcel(
+        int $month,
+        int $year,
+        string $jabatanFilter,
+        $sessions,
+        $participants,
+        array $matrix
+    ): Spreadsheet {
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Rekap Presensi Apel');
+        $sheet->setShowGridLines(true);
+
+        $monthNames = [
+            '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        $monthName = $monthNames[$month] ?? '';
+
+        // Calculate total columns
+        $sessionCount = count($sessions);
+        $lastColIndex = 4 + $sessionCount + 2; // No, Nama, NIP/NIM, Jabatan + sessions + Total + %
+        $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($lastColIndex);
+
+        // ── 1. KOP SEKOLAH ───────────────────────────────────────────────────
+        $kopLines = [
+            1 => ['text' => 'PEMERINTAH DAERAH PROVINSI JAWA BARAT',    'bold' => false, 'size' => 10],
+            2 => ['text' => 'DINAS PENDIDIKAN',                          'bold' => true,  'size' => 10],
+            3 => ['text' => 'CABANG DINAS PENDIDIKAN WILAYAH XIII',      'bold' => true,  'size' => 10],
+            4 => ['text' => 'SMK NEGERI 1 CIAMIS',                       'bold' => true,  'size' => 14],
+            5 => ['text' => 'Jalan : Jenderal Sudirman Nomor : 269 Tlp. (0265) 771204', 'bold' => false, 'size' => 8.5],
+            6 => ['text' => 'Faksimile : (0265) 771204/777719  Website : www.smkn1ciamis.sch.id  E-mail : surat@smkn1cms.net', 'bold' => false, 'size' => 8.5],
+            7 => ['text' => 'Ciamis – 46215',                            'bold' => false, 'size' => 8.5],
+        ];
+
+        foreach ($kopLines as $row => $line) {
+            $sheet->mergeCells("A{$row}:{$lastColLetter}{$row}");
+            $sheet->setCellValue("A{$row}", $line['text']);
+            $sheet->getStyle("A{$row}")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                ->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("A{$row}")->getFont()
+                ->setName('Times New Roman')
+                ->setSize($line['size'])
+                ->setBold($line['bold']);
+            $sheet->getRowDimension($row)->setRowHeight($row === 4 ? 20 : 13);
+        }
+
+        $sheet->getStyle("A7:{$lastColLetter}7")->getBorders()->getBottom()
+            ->setBorderStyle(Border::BORDER_MEDIUM);
+
+        // Logo
+        $logoPath = public_path('icons/logojawabaratheader.png');
+        if (file_exists($logoPath) && is_readable($logoPath)) {
+            try {
+                $drawing = new Drawing();
+                $drawing->setName('Logo Pemprov Jabar');
+                $drawing->setPath($logoPath);
+                $drawing->setHeight(85);
+                $drawing->setCoordinates('A1');
+                $drawing->setOffsetX(5);
+                $drawing->setOffsetY(5);
+                $drawing->setWorksheet($sheet);
+            } catch (\Throwable $e) {}
+        }
+
+        // Empty row 8
+        $sheet->getRowDimension(8)->setRowHeight(8);
+
+        // ── 2. TITLE & FILTER INFO ───────────────────────────────────────────
+        $title = "REKAPITULASI DAFTAR HADIR APEL BULAN " . strtoupper($monthName) . " {$year}";
+        if ($jabatanFilter) {
+            $title .= " - " . strtoupper($jabatanFilter);
+        }
+        $sheet->mergeCells("A9:{$lastColLetter}9");
+        $sheet->setCellValue("A9", $title);
+        $sheet->getStyle("A9")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A9")->getFont()->setName('Times New Roman')->setSize(12)->setBold(true);
+        $sheet->getRowDimension(9)->setRowHeight(20);
+
+        $sheet->mergeCells("A10:{$lastColLetter}10");
+        $sheet->setCellValue("A10", "Total Pelaksanaan Apel: {$sessionCount} Sesi | Total Peserta: " . count($participants) . " Orang");
+        $sheet->getStyle("A10")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A10")->getFont()->setName('Times New Roman')->setSize(9.5)->setItalic(true);
+        $sheet->getRowDimension(10)->setRowHeight(15);
+
+        // Empty row 11
+        $sheet->getRowDimension(11)->setRowHeight(8);
+
+        // ── 3. TABLE HEADERS ─────────────────────────────────────────────────
+        $headerRow = 12;
+        $sheet->setCellValue("A{$headerRow}", "No");
+        $sheet->setCellValue("B{$headerRow}", "Nama Lengkap");
+        $sheet->setCellValue("C{$headerRow}", "NIP / NIM");
+        $sheet->setCellValue("D{$headerRow}", "Kategori / Jabatan");
+
+        $colIdx = 5;
+        foreach ($sessions as $session) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+            $dateStr = Carbon::parse($session->date)->format('d/m');
+            $sheet->setCellValue("{$colLetter}{$headerRow}", "Tgl " . $dateStr . "\n" . $session->code);
+            $sheet->getStyle("{$colLetter}{$headerRow}")->getAlignment()->setWrapText(true);
+            $sheet->getColumnDimension($colLetter)->setWidth(12);
+            $colIdx++;
+        }
+
+        $totalColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+        $sheet->setCellValue("{$totalColLetter}{$headerRow}", "Total\nHadir");
+        $sheet->getStyle("{$totalColLetter}{$headerRow}")->getAlignment()->setWrapText(true);
+        $sheet->getColumnDimension($totalColLetter)->setWidth(10);
+        $colIdx++;
+
+        $pctColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+        $sheet->setCellValue("{$pctColLetter}{$headerRow}", "%\nHadir");
+        $sheet->getStyle("{$pctColLetter}{$headerRow}")->getAlignment()->setWrapText(true);
+        $sheet->getColumnDimension($pctColLetter)->setWidth(10);
+
+        // Header styles
+        $sheet->getStyle("A{$headerRow}:{$lastColLetter}{$headerRow}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 9.5, 'name' => 'Times New Roman'],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E293B']], // Dark slate
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF000000']],
+            ],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(28);
+
+        // Fixed column widths
+        $sheet->getColumnDimension('A')->setWidth(5);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(20);
+        $sheet->getColumnDimension('D')->setWidth(20);
+
+        // ── 4. DATA ROWS ─────────────────────────────────────────────────────
+        $currentRow = $headerRow + 1;
+        $no = 1;
+
+        foreach ($participants as $p) {
+            $sheet->setCellValue("A{$currentRow}", $no);
+            $sheet->setCellValue("B{$currentRow}", $p->name);
+            
+            // Identifier (NIP or other_id/NIM)
+            $idVal = $p->nip ?: ($p->other_id ?: $p->nik);
+            $sheet->setCellValueExplicit("C{$currentRow}", $idVal, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            
+            // Jabatan / Kategori
+            $jabatanDisplay = $p->jabatan ?: $p->role;
+            $sheet->setCellValue("D{$currentRow}", $jabatanDisplay);
+
+            $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("C{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("D{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+            $attended = 0;
+            $sessColIdx = 5;
+
+            foreach ($sessions as $s) {
+                $colLtr = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($sessColIdx);
+                $att = $matrix[$p->nik][$s->id] ?? null;
+
+                if ($att) {
+                    $attended++;
+                    $timeStr = Carbon::parse($att->signed_in_at)->format('H:i');
+                    $sheet->setCellValue("{$colLtr}{$currentRow}", "✓ {$timeStr}");
+                    $sheet->getStyle("{$colLtr}{$currentRow}")->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF047857')); // Emerald green
+                } else {
+                    $sheet->setCellValue("{$colLtr}{$currentRow}", "-");
+                    $sheet->getStyle("{$colLtr}{$currentRow}")->getFont()->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF94A3B8')); // Muted slate
+                }
+                $sheet->getStyle("{$colLtr}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sessColIdx++;
+            }
+
+            // Total Hadir & Percentage
+            $totalColLtr = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($sessColIdx);
+            $sheet->setCellValue("{$totalColLtr}{$currentRow}", $attended);
+            $sheet->getStyle("{$totalColLtr}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("{$totalColLtr}{$currentRow}")->getFont()->setBold(true);
+            $sessColIdx++;
+
+            $pctVal = $sessionCount > 0 ? round(($attended / $sessionCount) * 100, 1) : 0;
+            $pctColLtr = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($sessColIdx);
+            $sheet->setCellValue("{$pctColLtr}{$currentRow}", "{$pctVal}%");
+            $sheet->getStyle("{$pctColLtr}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("{$pctColLtr}{$currentRow}")->getFont()->setBold(true);
+
+            // Zebra striping
+            if ($no % 2 === 0) {
+                $sheet->getStyle("A{$currentRow}:{$lastColLetter}{$currentRow}")->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFF8FAFC');
+            }
+
+            $sheet->getStyle("A{$currentRow}:{$lastColLetter}{$currentRow}")->getBorders()
+                ->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB('FFE2E8F0');
+            $sheet->getStyle("A{$currentRow}:{$lastColLetter}{$currentRow}")->getFont()
+                ->setName('Times New Roman')->setSize(9.5);
+
+            $sheet->getRowDimension($currentRow)->setRowHeight(20);
+            $currentRow++;
+            $no++;
+        }
+
+        // ── 5. SIGNATURE BLOCK ───────────────────────────────────────────────
+        $sigRow = $currentRow + 2;
+        $sigStartColIdx = max(1, $lastColIndex - 3);
+        $sigStartColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($sigStartColIdx);
+
+        $tglCiamis = "Ciamis, " . self::formatDateSimpleId(Carbon::now());
+        $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", $tglCiamis);
+        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sigRow++;
+        $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", "Kepala Sekolah,");
+        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sigRow += 4; // Space for signature
+        $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::KEPSEK_NAME);
+        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getFont()->setBold(true)->setUnderline(true);
+
+        $sigRow++;
+        $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::KEPSEK_GOLOK);
+        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sigRow++;
+        $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
+        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::KEPSEK_NIP);
+        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Times New Roman')->setSize(9.5);
+
+        return $spreadsheet;
+    }
+
+    /**
      * Format a Carbon date in Indonesian long format:
      * e.g. "Senin, 18 Agustus 2026"
      */
