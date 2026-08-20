@@ -456,25 +456,58 @@
     // Toggle dropdown function
     function toggleDropdown(event, id) {
         event.stopPropagation();
+        const dropdown = document.getElementById(id);
+        if (!dropdown) return;
+        
+        const isCurrentlyOpen = dropdown.classList.contains('dropdown-open');
         
         // Close all other dropdowns
         document.querySelectorAll('.dropdown-menu-content').forEach(el => {
-            if (el.id !== id) {
-                el.style.display = 'none';
-            }
+            el.classList.remove('dropdown-open');
+            el.style.display = 'none';
         });
         
-        const dropdown = document.getElementById(id);
-        if (dropdown) {
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        if (!isCurrentlyOpen) {
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            
+            // Move dropdown to body so it completely breaks out of table overflow
+            if (dropdown.parentElement !== document.body) {
+                document.body.appendChild(dropdown);
+            }
+            
+            dropdown.style.display = 'block';
+            dropdown.style.position = 'fixed';
+            dropdown.style.zIndex = '999999';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+            dropdown.style.left = 'auto';
+            
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 200 && rect.top > 200) {
+                dropdown.style.top = 'auto';
+                dropdown.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+            } else {
+                dropdown.style.top = (rect.bottom + 6) + 'px';
+                dropdown.style.bottom = 'auto';
+            }
+            
+            dropdown.classList.add('dropdown-open');
         }
     }
 
-    // Close all dropdowns when clicking outside
+    // Close all dropdowns when clicking outside or scrolling
     window.addEventListener('click', () => {
         document.querySelectorAll('.dropdown-menu-content').forEach(el => {
+            el.classList.remove('dropdown-open');
             el.style.display = 'none';
         });
     });
+
+    window.addEventListener('scroll', () => {
+        document.querySelectorAll('.dropdown-menu-content').forEach(el => {
+            el.classList.remove('dropdown-open');
+            el.style.display = 'none';
+        });
+    }, { passive: true });
 </script>
 @endsection

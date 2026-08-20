@@ -61,7 +61,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Show admin dashboard (Sessions list & stats).
+     * Show admin dashboard (Analytics, Live Session Widget & Key Metrics).
      */
     public function dashboard()
     {
@@ -73,11 +73,16 @@ class AdminController extends Controller
         $todayAttendances   = Attendance::whereDate('signed_in_at', $todayStr)->count();
         $apelLocation       = ApelLocation::getInstance();
 
-        // Get sessions, newest first
-        $sessions = ApelSession::withCount('attendances')
-            ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'desc')
-            ->paginate(10);
+        // Check active session today
+        $activeSessionsToday = ApelSession::where('date', '<=', $todayStr)
+            ->where(function ($q) use ($todayStr) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+            })
+            ->withCount('attendances')
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $currentOpenSession = $activeSessionsToday->filter(fn ($s) => $s->isOpen())->first();
 
         // ── Analytics for Visual Charts ──────────────────────────────────────
         // 1. Trend last 7 sessions
@@ -149,13 +154,22 @@ class AdminController extends Controller
         // 4. Overall average attendance rate
         $avgAttendanceRate = count($chartRates) > 0 ? round(array_sum($chartRates) / count($chartRates), 1) : 0;
 
+        // 5. Recent 4 sessions summary
+        $recentSessions = ApelSession::withCount('attendances')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->limit(4)
+            ->get();
+
         return view('admin.dashboard', compact(
             'totalParticipants',
             'activeParticipants',
             'totalSessions',
             'todayAttendances',
-            'sessions',
             'apelLocation',
+            'activeSessionsToday',
+            'currentOpenSession',
+            'recentSessions',
             'chartLabels',
             'chartData',
             'chartRates',
@@ -163,6 +177,19 @@ class AdminController extends Controller
             'topParticipants',
             'avgAttendanceRate'
         ));
+    }
+
+    /**
+     * Show dedicated Sesi Apel page (Create Form + Sessions List Table).
+     */
+    public function sessions(Request $request)
+    {
+        $sessions = ApelSession::withCount('attendances')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(10);
+
+        return view('admin.sessions', compact('sessions'));
     }
 
     /**
@@ -207,7 +234,7 @@ class AdminController extends Controller
             ? ' (berlaku ' . $startDate->format('d M') . ' – ' . $endDate->format('d M Y') . ')'
             : '';
 
-        return redirect()->route('admin.dashboard')->with('success', 'Sesi Apel baru berhasil dibuat dengan Kode: ' . $code . $rangeLabel);
+        return redirect()->route('admin.sessions.index')->with('success', 'Sesi Apel baru berhasil dibuat dengan Kode: ' . $code . $rangeLabel);
     }
 
     /**
@@ -218,7 +245,7 @@ class AdminController extends Controller
         $session = ApelSession::findOrFail($id);
         $session->delete();
 
-        return redirect()->route('admin.dashboard')->with('success', 'Sesi Apel berhasil dihapus.');
+        return redirect()->route('admin.sessions.index')->with('success', 'Sesi Apel berhasil dihapus.');
     }
 
     /**

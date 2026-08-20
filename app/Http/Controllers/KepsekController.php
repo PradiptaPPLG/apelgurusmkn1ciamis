@@ -97,11 +97,18 @@ class KepsekController extends Controller
         // 4. Overall average attendance rate
         $avgAttendanceRate = count($chartRates) > 0 ? round(array_sum($chartRates) / count($chartRates), 1) : 0;
 
+        // 5. Recent sessions
+        $recentSessions = ApelSession::withCount('attendances')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->limit(4)
+            ->get();
+
         return view('kepsek.dashboard', compact(
             'totalParticipants',
             'totalSessions',
             'todayAttendances',
-            'sessions',
+            'recentSessions',
             'chartLabels',
             'chartData',
             'chartRates',
@@ -109,6 +116,19 @@ class KepsekController extends Controller
             'topParticipants',
             'avgAttendanceRate'
         ));
+    }
+
+    /**
+     * Kepala Sekolah sessions list – read-only.
+     */
+    public function sessions(Request $request)
+    {
+        $sessions = ApelSession::withCount('attendances')
+            ->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(10);
+
+        return view('kepsek.sessions', compact('sessions'));
     }
 
     /**

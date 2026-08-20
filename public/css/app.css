@@ -526,6 +526,7 @@ a:hover {
     background: #ffffff;
 }
 
+.table,
 .table-custom {
     width: 100%;
     border-collapse: collapse;
@@ -533,6 +534,7 @@ a:hover {
     font-size: 0.9rem;
 }
 
+.table th,
 .table-custom th {
     background: #f8fafc;
     padding: 0.75rem 1rem;
@@ -541,6 +543,7 @@ a:hover {
     border-bottom: 1.5px solid var(--card-border);
 }
 
+.table td,
 .table-custom td {
     padding: 0.85rem 1rem;
     border-bottom: 1px solid #e2e8f0;
@@ -548,10 +551,12 @@ a:hover {
     vertical-align: middle;
 }
 
+.table tr:last-child td,
 .table-custom tr:last-child td {
     border-bottom: none;
 }
 
+.table tr:hover td,
 .table-custom tr:hover td {
     background: #f8fafc;
 }
@@ -584,6 +589,69 @@ a:hover {
 .badge-info {
     background-color: #dbeafe;
     color: #1d4ed8;
+}
+
+/* Action Dropdown Menu */
+.dropdown-menu-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 6px;
+    background: #ffffff;
+    min-width: 175px;
+    border-radius: var(--radius-md, 8px);
+    border: 1.5px solid var(--card-border, #e2e8f0);
+    box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.22), 0 6px 12px -4px rgba(0, 0, 0, 0.12);
+    padding: 0.4rem 0;
+    z-index: 999999 !important;
+    text-align: left;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.83rem;
+    color: var(--text-main, #1e293b);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--accent-indigo, #6366f1);
+}
+
+.dropdown-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.dropdown-item.text-danger {
+    color: #ef4444 !important;
+}
+
+.dropdown-item.text-danger i {
+    color: #ef4444 !important;
+}
+
+.dropdown-item.text-danger:hover {
+    background: #fef2f2;
+    color: #dc2626 !important;
 }
 
 /* Pagination */

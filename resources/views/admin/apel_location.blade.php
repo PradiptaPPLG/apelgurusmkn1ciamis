@@ -219,12 +219,28 @@
         center:      CENTER,
         zoom:        ZOOM,
         zoomControl: true,
+        maxZoom:     22,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 20,
-    }).addTo(map);
+        maxNativeZoom: 19,
+        maxZoom: 22,
+    });
+
+    var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri World Imagery',
+        maxNativeZoom: 19,
+        maxZoom: 22,
+    });
+
+    osm.addTo(map);
+
+    // Layer switcher control (Peta Jalan vs Satelit)
+    L.control.layers({
+        "Peta Jalan": osm,
+        "Satelit": satellite
+    }, null, { position: 'topright' }).addTo(map);
 
     // ── State ─────────────────────────────────────────────────
     var marker       = null;

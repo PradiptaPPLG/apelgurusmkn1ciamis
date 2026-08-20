@@ -53,7 +53,8 @@ Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.lo
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->middleware('admin.only')->name('dashboard');
 
-    // Sessions
+    // Sessions (Kelola Sesi & Riwayat)
+    Route::get('/sessions', [AdminController::class, 'sessions'])->middleware('admin.only')->name('sessions.index');
     Route::post('/sessions', [AdminController::class, 'storeSession'])->middleware('admin.only')->name('sessions.store');
     Route::delete('/sessions/{id}', [AdminController::class, 'deleteSession'])->middleware('admin.only')->name('sessions.delete');
     Route::get('/sessions/{id}', [AdminController::class, 'sessionDetail'])->middleware('admin.only')->name('sessions.detail');
@@ -85,6 +86,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 // Kepala Sekolah Routes (Protected – read-only)
 Route::middleware(['auth'])->prefix('kepsek')->name('kepsek.')->group(function () {
     Route::get('/dashboard', [KepsekController::class, 'dashboard'])->name('dashboard');
+    Route::get('/sessions', [KepsekController::class, 'sessions'])->name('sessions.index');
     Route::get('/participants', [KepsekController::class, 'participants'])->name('participants');
     Route::get('/sessions/{id}', [KepsekController::class, 'sessionDetail'])->name('sessions.detail');
     Route::get('/sessions/{id}/export-pdf',   [KepsekController::class, 'exportPDF'])->name('sessions.export.pdf');

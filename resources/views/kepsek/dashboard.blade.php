@@ -6,27 +6,37 @@
 @section('content')
 <div class="admin-wrapper">
 
+    {{-- Sidebar --}}
     @include('kepsek.partials.sidebar', ['activePage' => 'dashboard'])
 
     <div class="admin-main">
 
+        {{-- Mobile Topbar --}}
         <header class="admin-mobile-topbar">
-            <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Buka Menu Sidebar">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <span class="mobile-topbar-title"><i class="fa-solid fa-gauge-high"></i> Dashboard</span>
+            <span class="mobile-topbar-title"><i class="fa-solid fa-chart-pie"></i> Dashboard</span>
         </header>
 
         <div class="admin-content-area">
 
             {{-- Page Header --}}
-            <div class="page-header">
+            <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
                 <div>
                     <h1 class="page-title">
-                        <i class="fa-solid fa-eye" style="color: var(--accent-indigo);"></i>
-                        Pantau Kehadiran Guru
+                        <i class="fa-solid fa-chart-pie" style="color: var(--accent-indigo);"></i>
+                        Pantauan Kehadiran &amp; Analitik
                     </h1>
-                    <p class="page-subtitle">Tampilan read-only — riwayat sesi apel dan data peserta.</p>
+                    <p class="page-subtitle">Ringkasan eksekutif kehadiran apel guru, tenaga kependidikan, dan mahasiswa magang.</p>
+                </div>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <a href="{{ route('kepsek.sessions.index') }}" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                        <i class="fa-solid fa-calendar-check"></i> Riwayat Sesi Apel
+                    </a>
+                    <a href="{{ route('kepsek.rekap.index') }}" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:0.4rem;">
+                        <i class="fa-solid fa-table-list"></i> Rekap Bulanan
+                    </a>
                 </div>
             </div>
 
@@ -38,7 +48,7 @@
             @endif
 
             {{-- Statistics Panel --}}
-            <div class="stats-grid">
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
                 <div class="stat-card">
                     <div class="stat-icon">
                         <i class="fa-solid fa-users"></i>
@@ -46,6 +56,7 @@
                     <div>
                         <div class="stat-title">Total Peserta Aktif</div>
                         <div class="stat-value">{{ $totalParticipants }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Guru, TU, &amp; Magang</div>
                     </div>
                 </div>
 
@@ -67,7 +78,7 @@
                     <div>
                         <div class="stat-title">Hadir Hari Ini</div>
                         <div class="stat-value">{{ $todayAttendances }}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Semua Sesi</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Semua Sesi Hari Ini</div>
                     </div>
                 </div>
 
@@ -76,7 +87,7 @@
                         <i class="fa-solid fa-user-tie"></i>
                     </div>
                     <div>
-                        <div class="stat-title">Akun</div>
+                        <div class="stat-title">Hak Akses</div>
                         <div class="stat-value" style="font-size:1.1rem;">Kepala Sekolah</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">Read-only access</div>
                     </div>
@@ -84,7 +95,7 @@
             </div>
 
             {{-- Analytics Charts Section (Fitur #4) --}}
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
                 
                 {{-- Chart 1: Trend Kehadiran --}}
                 <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column;">
@@ -152,11 +163,11 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fa-solid fa-medal" style="color: #f59e0b; font-size: 1.1rem;"></i>
                         <h4 style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); margin: 0;">
-                            Peserta Paling Disiplin & Rajin Hadir (30 Hari Terakhir)
+                            Peserta Paling Disiplin &amp; Rajin Hadir (30 Hari Terakhir)
                         </h4>
                     </div>
                     <a href="{{ route('kepsek.rekap.index') }}" style="font-size: 0.8rem; color: var(--accent-indigo); font-weight: 600; text-decoration: none;">
-                        Lihat Rekap Lengkap →
+                        Lihat Rekap Lengkap &rarr;
                     </a>
                 </div>
                 <div style="display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.25rem;">
@@ -180,70 +191,73 @@
             </div>
             @endif
 
-            {{-- Sessions List (read-only) --}}
-            <div style="margin-top: 1.5rem;">
-                <h3 style="margin-bottom: 1.25rem; font-size: 1.2rem; color: var(--text-main); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
-                    <span><i class="fa-solid fa-list" style="color: var(--accent-teal)"></i> Riwayat Sesi Apel</span>
-                    <span style="font-size:0.72rem; display:flex; align-items:center; gap:0.8rem; font-weight:600; background:rgba(255,255,255,0.4); padding:0.25rem 0.6rem; border-radius:var(--radius-sm); border:1px solid var(--input-border);">
-                        <span style="display:flex;align-items:center;gap:0.3rem;"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span>Hijau = Aktif</span>
-                        <span style="display:flex;align-items:center;gap:0.3rem;"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;"></span>Merah = Kadaluarsa</span>
-                    </span>
-                </h3>
+            {{-- Recent Sessions Summary Card --}}
+            <div class="card" style="padding: 1.25rem 1.5rem; border: 1.5px solid var(--card-border);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div>
+                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0;">
+                            <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-indigo)"></i> Sesi Apel Terakhir
+                        </h3>
+                        <span style="font-size: 0.78rem; color: var(--text-muted);">Ringkasan pelaksanaan apel terbaru</span>
+                    </div>
+                    <a href="{{ route('kepsek.sessions.index') }}" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <span>Buka Riwayat Sesi</span> <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
 
-                @if ($sessions->isEmpty())
-                    <div style="text-align:center;padding:3rem;background:rgba(255,255,255,0.2);border-radius:var(--radius-md);border:1.5px dashed var(--input-border);">
-                        <i class="fa-regular fa-folder-open" style="font-size:2.5rem;color:var(--text-light);margin-bottom:1rem;"></i>
-                        <p style="color:var(--text-muted);font-weight:500;">Belum ada sesi apel.</p>
+                @if($recentSessions->isEmpty())
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        Belum ada riwayat sesi apel.
                     </div>
                 @else
-                    <div class="table-responsive">
-                        <table class="table-custom">
+                    <div class="table-responsive" style="margin-bottom: 0;">
+                        <table class="table-custom" style="width: 100%;">
                             <thead>
                                 <tr>
-                                    <th>Kegiatan / Tanggal</th>
-                                    <th>Tipe</th>
-                                    <th>Jam Buka</th>
-                                    <th style="text-align:center;">Kode</th>
-                                    <th style="text-align:center;">Kehadiran</th>
-                                    <th style="text-align:right;">Aksi</th>
+                                    <th style="min-width: 140px;">Kegiatan</th>
+                                    <th style="width: 14%;">Tanggal</th>
+                                    <th style="width: 10%; text-align: center;">Tipe</th>
+                                    <th style="min-width: 120px; text-align: center;">Jam Buka</th>
+                                    <th style="width: 12%; text-align: center;">Kode</th>
+                                    <th style="width: 12%; text-align: center;">Kehadiran</th>
+                                    <th style="width: 10%; text-align: center;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($sessions as $session)
+                                @foreach($recentSessions as $rs)
                                 <tr>
                                     <td>
-                                        <div style="font-weight:700;color:var(--text-main);">{{ $session->title }}</div>
-                                        <div style="font-size:0.75rem;color:var(--text-muted);">
-                                            {{ $session->dateRangeLabel() }}
-                                            @if($session->valid_days > 1)
-                                                <span style="color:var(--accent-indigo);font-weight:600;">({{ $session->valid_days }} hari)</span>
-                                            @endif
+                                        <div style="font-weight: 700; color: var(--text-main);">
+                                            <a href="{{ route('kepsek.sessions.detail', $rs->id) }}" style="color: inherit; text-decoration: none;">
+                                                {{ $rs->title }}
+                                            </a>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge {{ $session->type === 'pagi' ? 'badge-info' : 'badge-warning' }}">
-                                            {{ ucfirst($session->type) }}
+                                        <span style="font-size: 0.83rem; color: var(--text-muted);">{{ $rs->date->format('d M Y') }}</span>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge {{ $rs->type === 'pagi' ? 'badge-primary' : 'badge-warning' }}">
+                                            {{ ucfirst($rs->type) }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <div style="font-size:0.85rem;font-weight:600;">
-                                            {{ \Carbon\Carbon::parse($session->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($session->end_time)->format('H:i') }}
-                                        </div>
+                                    <td style="text-align: center;">
+                                        <span style="font-size: 0.83rem; font-weight: 600;">
+                                            {{ \Carbon\Carbon::parse($rs->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($rs->end_time)->format('H:i') }}
+                                        </span>
                                     </td>
-                                    <td style="text-align:center;">
-                                        @if($session->isExpired())
-                                            <code style="font-family:monospace;font-size:1rem;font-weight:800;background:rgba(239,68,68,0.1);color:#ef4444;padding:0.15rem 0.4rem;border-radius:4px;">{{ $session->code }}</code>
+                                    <td style="text-align: center;">
+                                        @if($rs->isOpen())
+                                            <code style="font-family: monospace; font-size: 0.95rem; font-weight: 800; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.15rem 0.4rem; border-radius: 4px;">{{ $rs->code }}</code>
                                         @else
-                                            <code style="font-family:monospace;font-size:1rem;font-weight:800;background:rgba(16,185,129,0.1);color:#10b981;padding:0.15rem 0.4rem;border-radius:4px;">{{ $session->code }}</code>
+                                            <code style="font-family: monospace; font-size: 0.95rem; font-weight: 600; background: rgba(239, 68, 68, 0.08); color: #ef4444; padding: 0.15rem 0.4rem; border-radius: 4px;">{{ $rs->code }}</code>
                                         @endif
                                     </td>
-                                    <td style="text-align:center;font-weight:700;font-size:1.1rem;color:var(--accent-teal);">
-                                        {{ $session->attendances_count }}
+                                    <td style="text-align: center; font-weight: 700; font-size: 1rem; color: var(--accent-teal);">
+                                        {{ $rs->attendances_count }}
                                     </td>
-                                    <td style="text-align:right;">
-                                        <a href="{{ route('kepsek.sessions.detail', $session->id) }}"
-                                           class="btn btn-secondary btn-sm"
-                                           style="font-size:0.78rem; padding:0.3rem 0.75rem;">
+                                    <td style="text-align: center;">
+                                        <a href="{{ route('kepsek.sessions.detail', $rs->id) }}" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.3rem 0.75rem; display:inline-flex; align-items:center; gap:0.25rem;">
                                             <i class="fa-solid fa-eye"></i> Detail
                                         </a>
                                     </td>
@@ -251,10 +265,6 @@
                                 @endforeach
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="pagination-wrapper">
-                        {{ $sessions->links() }}
                     </div>
                 @endif
             </div>

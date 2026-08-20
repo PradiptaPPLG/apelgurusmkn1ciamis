@@ -35,8 +35,14 @@
 
         <a href="{{ route('admin.dashboard') }}"
            class="sidebar-nav-item {{ ($activePage ?? '') === 'dashboard' ? 'active' : '' }}">
-            <i class="fa-solid fa-gauge-high"></i>
-            <span>Dashboard & Sesi</span>
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{{ route('admin.sessions.index') }}"
+           class="sidebar-nav-item {{ ($activePage ?? '') === 'sessions' ? 'active' : '' }}">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Sesi Apel</span>
         </a>
 
         <a href="{{ route('admin.participants') }}"

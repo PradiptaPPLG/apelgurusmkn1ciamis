@@ -31,8 +31,14 @@
 
         <a href="{{ route('kepsek.dashboard') }}"
            class="sidebar-nav-item {{ ($activePage ?? '') === 'dashboard' ? 'active' : '' }}">
-            <i class="fa-solid fa-gauge-high"></i>
+            <i class="fa-solid fa-chart-pie"></i>
             <span>Dashboard</span>
+        </a>
+
+        <a href="{{ route('kepsek.sessions.index') }}"
+           class="sidebar-nav-item {{ ($activePage ?? '') === 'sessions' ? 'active' : '' }}">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Sesi Apel</span>
         </a>
 
         <a href="{{ route('kepsek.participants') }}"

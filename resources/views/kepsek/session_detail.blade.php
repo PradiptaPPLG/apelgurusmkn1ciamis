@@ -338,9 +338,11 @@ function showMapModal(lat, lon, name) {
     mapModal.style.display = 'flex';
     setTimeout(() => {
         if (leafletMap) leafletMap.remove();
-        leafletMap = L.map('mapContainer').setView([lat, lon], 16);
+        leafletMap = L.map('mapContainer', { maxZoom: 22 }).setView([lat, lon], 16);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; OpenStreetMap contributors',
+            maxNativeZoom: 19,
+            maxZoom: 22
         }).addTo(leafletMap);
         L.marker([lat, lon]).addTo(leafletMap)
             .bindPopup(`<b>${name}</b><br>Lokasi Presensi`).openPopup();
