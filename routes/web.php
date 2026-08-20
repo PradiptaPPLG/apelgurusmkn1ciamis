@@ -17,10 +17,12 @@ Route::get('/', function () {
 });
 
 Route::get('/apel/{code?}', [AttendanceController::class, 'index'])->name('apel.index');
-Route::post('/apel/submit', [AttendanceController::class, 'submit'])->name('apel.submit');
+Route::post('/apel/submit', [AttendanceController::class, 'submit'])
+    ->middleware('throttle:300,1')
+    ->name('apel.submit');
 Route::get('/apel-sukses', [AttendanceController::class, 'success'])->name('apel.success');
 
-// Public API: participant lookup
+// Public API: participant lookup (300 req/min allows full school Wi-Fi rush hour while stopping bots)
 Route::get('/api/participant/{nik}', function ($nik) {
     $participant = \App\Models\Participant::where('nik', $nik)
         ->orWhere('nip', $nik)
@@ -33,14 +35,18 @@ Route::get('/api/participant/{nik}', function ($nik) {
         ]);
     }
     return response()->json(['message' => 'Not found'], 404);
-});
+})->middleware('throttle:300,1');
 
 // Public API: get apel geofence location (for client-side validation)
-Route::get('/api/apel-location', [AdminController::class, 'getApelLocation'])->name('api.apel.location');
+Route::get('/api/apel-location', [AdminController::class, 'getApelLocation'])
+    ->middleware('throttle:300,1')
+    ->name('api.apel.location');
 
-// Admin Authentication (alias untuk /login sudah di atas)
+// Admin Authentication (alias untuk /login sudah di atas - Rate limited to 5 attempts per minute)
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('admin.login');
-Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.submit');
+Route::post('/admin/login', [AdminController::class, 'login'])
+    ->middleware('throttle:5,1')
+    ->name('admin.login.submit');
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
 // Admin Dashboard & Management (Protected – Admin only for write routes)

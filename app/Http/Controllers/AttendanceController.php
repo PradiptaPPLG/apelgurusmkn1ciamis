@@ -2,14 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApelLocation;
 use App\Models\ApelSession;
 use App\Models\Participant;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class AttendanceController extends Controller
 {
+    /**
+     * Calculate distance between two GPS coordinates using Haversine formula in meters.
+     */
+    private function calculateDistanceMeters($lat1, $lon1, $lat2, $lon2): float
+    {
+        $earthRadius = 6371000; // meters
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLon / 2) * sin($dLon / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        return $earthRadius * $c;
+    }
+
     /**
      * Show the check-in form.
      */
@@ -104,7 +121,32 @@ class AttendanceController extends Controller
             return back()->withErrors(['code' => "Sesi apel ({$session->title}) saat ini sudah ditutup. Jam operasional: {$startTime} - {$endTime}."])->withInput();
         }
 
-        // 4. Check if already checked in using the primary key (NIK)
+        // 4. Server-Side Geofence Enforcement (Prevent bypass via Postman/Curl)
+        $apelLocation = ApelLocation::getInstance();
+        if ($apelLocation->isConfigured()) {
+            $lat = $request->input('latitude');
+            $lon = $request->input('longitude');
+
+            if (!$lat || !$lon) {
+                return back()->withErrors(['latitude' => 'Lokasi GPS perangkat Anda wajib diaktifkan untuk melakukan presensi apel.'])->withInput();
+            }
+
+            $distanceMeters = $this->calculateDistanceMeters(
+                (float) $lat,
+                (float) $lon,
+                (float) $apelLocation->latitude,
+                (float) $apelLocation->longitude
+            );
+
+            if ($distanceMeters > $apelLocation->radius_meter) {
+                $roundedDist = round($distanceMeters);
+                return back()->withErrors([
+                    'latitude' => "Posisi Anda berada di luar radius lokasi apel ({$roundedDist} meter dari titik apel SMKN 1 Ciamis, batas maksimal: {$apelLocation->radius_meter} meter)."
+                ])->withInput();
+            }
+        }
+
+        // 5. Check if already checked in using the primary key (NIK)
         $exists = Attendance::where('apel_session_id', $session->id)
             ->where('participant_nik', $participant->nik)
             ->exists();
@@ -113,17 +155,21 @@ class AttendanceController extends Controller
             return back()->withErrors(['nik' => 'Anda sudah melakukan absensi untuk sesi apel ini.'])->withInput();
         }
 
-        // 5. Save attendance
-        Attendance::create([
-            'apel_session_id' => $session->id,
-            'participant_nik' => $participant->nik, // Store actual primary key NIK
-            'signature' => $request->input('signature'),
-            'photo' => $request->input('photo'),
-            'latitude' => $request->input('latitude'),
-            'longitude' => $request->input('longitude'),
-            'location_name' => $request->input('location_name'),
-            'signed_in_at' => Carbon::now(),
-        ]);
+        // 6. Save attendance with race-condition handling
+        try {
+            Attendance::create([
+                'apel_session_id' => $session->id,
+                'participant_nik' => $participant->nik,
+                'signature' => $request->input('signature'),
+                'photo' => $request->input('photo'),
+                'latitude' => $request->input('latitude'),
+                'longitude' => $request->input('longitude'),
+                'location_name' => $request->input('location_name'),
+                'signed_in_at' => Carbon::now(),
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            return back()->withErrors(['nik' => 'Anda sudah melakukan absensi untuk sesi apel ini.'])->withInput();
+        }
 
         return redirect()->route('apel.success')->with([
             'success_message' => 'Absensi Apel berhasil disimpan!',
