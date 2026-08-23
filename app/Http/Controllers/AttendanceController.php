@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
 
+use App\Services\MotivationalQuoteService;
+
 class AttendanceController extends Controller
 {
     /**
@@ -36,9 +38,9 @@ class AttendanceController extends Controller
         $todayStr = $now->format('Y-m-d');
 
         // Find sessions active today (multi-day: date <= today <= end_date)
-        $activeSessions = ApelSession::where('date', '<=', $todayStr)
+        $activeSessions = ApelSession::whereDate('date', '<=', $todayStr)
             ->where(function ($q) use ($todayStr) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $todayStr);
             })
             ->get();
 
@@ -51,9 +53,9 @@ class AttendanceController extends Controller
         $urlSession = null;
         if ($code) {
             $urlSession = ApelSession::where('code', strtoupper($code))
-                ->where('date', '<=', $todayStr)
+                ->whereDate('date', '<=', $todayStr)
                 ->where(function ($q) use ($todayStr) {
-                    $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+                    $q->whereNull('end_date')->orWhereDate('end_date', '>=', $todayStr);
                 })
                 ->first();
         }
@@ -104,9 +106,9 @@ class AttendanceController extends Controller
 
         // 2. Find the session by code — supports multi-day sessions
         $session = ApelSession::where('code', $code)
-            ->where('date', '<=', $todayStr)
+            ->whereDate('date', '<=', $todayStr)
             ->where(function ($q) use ($todayStr) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $todayStr);
+                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $todayStr);
             })
             ->first();
 
@@ -171,11 +173,16 @@ class AttendanceController extends Controller
             return back()->withErrors(['nik' => 'Anda sudah melakukan absensi untuk sesi apel ini.'])->withInput();
         }
 
+        // 7. Dapatkan kata motivasi unik untuk guru ini pada sesi hari ini
+        $motivation = MotivationalQuoteService::getQuoteForAttendance($session, $participant);
+
         return redirect()->route('apel.success')->with([
-            'success_message' => 'Absensi Apel berhasil disimpan!',
-            'participant_name' => $participant->name,
-            'session_title' => $session->title,
-            'time' => Carbon::now()->format('H:i:s'),
+            'success_message'   => 'Absensi Apel berhasil disimpan!',
+            'participant_name'  => $participant->name,
+            'session_title'     => $session->title,
+            'time'              => Carbon::now()->format('H:i:s'),
+            'motivation_quote'  => $motivation['quote'],
+            'motivation_author' => $motivation['author'] ?? 'Inspirasi Hari Ini',
         ]);
     }
 

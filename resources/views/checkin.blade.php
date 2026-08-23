@@ -274,7 +274,11 @@ function checkGeofence(userLat, userLon) {
 
     // Step 2: Fetch geofence settings from server
     try {
-        const res  = await fetch(GEOFENCE_API);
+        const res  = await fetch(GEOFENCE_API, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
         geofenceData = await res.json();
     } catch (e) {
         console.warn('Gagal memuat data geofence:', e);

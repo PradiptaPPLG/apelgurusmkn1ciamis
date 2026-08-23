@@ -67,7 +67,7 @@ class ApelIntegrationTest extends TestCase
         // 2. Create open session for today
         $session = ApelSession::create([
             'title' => 'Test Session',
-            'date' => Carbon::today(),
+            'date' => Carbon::today()->toDateString(),
             'type' => 'pagi',
             'start_time' => '00:01:00',
             'end_time' => '23:59:00',
