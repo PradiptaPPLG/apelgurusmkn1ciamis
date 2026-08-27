@@ -58,6 +58,13 @@
         <div style="font-size:0.82rem; color:#065f46; font-weight:600;" id="gpsOkDesc">Lokasi terverifikasi. Anda berada dalam area apel.</div>
     </div>
 
+    {{-- Already Attended Banner --}}
+    <div id="alreadyAttendedBanner" style="display:none; text-align:center; background: rgba(16,185,129,0.07); border: 1.5px solid rgba(16,185,129,0.25); border-radius:10px; padding:1.5rem 1rem; margin-bottom:1rem;">
+        <i class="fa-solid fa-circle-check" style="font-size:3rem; color:#10b981; margin-bottom:1rem; display:block;"></i>
+        <div style="font-size:1.1rem; font-weight:700; color:#065f46; margin-bottom:0.5rem;">Anda Sudah Melakukan Absensi</div>
+        <div style="font-size:0.85rem; color:#065f46;">Terima kasih, data kehadiran Anda untuk sesi ini dari perangkat ini sudah tercatat. Tidak dapat melakukan absensi lagi.</div>
+    </div>
+
     {{-- Distance Bar (muncul saat inside/outside) --}}
     <div id="distanceBar" style="display:none; margin-bottom:1rem;">
         <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.3rem;">
@@ -141,6 +148,46 @@
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════
+//  ALREADY ATTENDED LOGIC
+// ══════════════════════════════════════════════════════
+function checkAlreadyAttended() {
+    const codeInput = document.getElementById('code');
+    if (!codeInput) return false;
+    
+    const code = codeInput.value.toUpperCase();
+    if (code) {
+        const today = new Date().toISOString().split('T')[0];
+        const hasAttended = localStorage.getItem(`attended_${code}_${today}`);
+        
+        if (hasAttended === 'true') {
+            document.getElementById('apelForm').style.display = 'none';
+            document.getElementById('alreadyAttendedBanner').style.display = 'block';
+            
+            // Hide distance and GPS banners just to be clean
+            document.getElementById('gpsLoadingBanner').style.display = 'none';
+            document.getElementById('gpsBlockBanner').style.display = 'none';
+            document.getElementById('gpsOutsideBanner').style.display = 'none';
+            document.getElementById('gpsOkBanner').style.display = 'none';
+            document.getElementById('distanceBar').style.display = 'none';
+            return true;
+        } else {
+            document.getElementById('apelForm').style.display = 'block';
+            document.getElementById('alreadyAttendedBanner').style.display = 'none';
+            return false;
+        }
+    }
+    return false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    checkAlreadyAttended();
+});
+
+document.getElementById('code').addEventListener('input', () => {
+    checkAlreadyAttended();
+});
+
 // ══════════════════════════════════════════════════════
 //  GEOFENCING + GPS — Hard Block Logic
 // ══════════════════════════════════════════════════════
@@ -260,6 +307,8 @@ function checkGeofence(userLat, userLon) {
 
 // ── Main GPS + Geofence Flow ─────────────────────────
 (async function initGeofence() {
+    if (checkAlreadyAttended()) return; // Stop geofencing if already attended
+
     showBanner('loading');
     disableSubmit('Menunggu verifikasi lokasi GPS...');
 

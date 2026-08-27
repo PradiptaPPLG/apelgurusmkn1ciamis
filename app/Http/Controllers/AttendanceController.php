@@ -180,6 +180,7 @@ class AttendanceController extends Controller
             'success_message'   => 'Absensi Apel berhasil disimpan!',
             'participant_name'  => $participant->name,
             'session_title'     => $session->title,
+            'session_code'      => $session->code,
             'time'              => Carbon::now()->format('H:i:s'),
             'motivation_quote'  => $motivation['quote'],
             'motivation_author' => $motivation['author'] ?? 'Inspirasi Hari Ini',

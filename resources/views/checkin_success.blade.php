@@ -54,4 +54,16 @@
         &copy; {{ date('Y') }} SMKN 1 Ciamis. All rights reserved.
     </div>
 </div>
+
+@if(session('session_code'))
+<script>
+    // Set a flag in localStorage that this device has checked in for this session
+    const sessionCode = "{{ session('session_code') }}";
+    if (sessionCode) {
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem(`attended_${sessionCode.toUpperCase()}_${today}`, 'true');
+    }
+</script>
+@endif
+
 @endsection
