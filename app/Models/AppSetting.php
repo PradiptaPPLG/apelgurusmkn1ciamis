@@ -36,9 +36,9 @@ class AppSetting extends Model
             'default_sore_start' => '14:50',
             'default_sore_end'   => '15:20',
             'default_radius'     => 25,
-            'kepsek_name'        => 'Drs. H. Asep Gunawan, M.Pd.',
-            'kepsek_nip'         => '19680512 199403 1 005',
-            'kepsek_pangkat'     => 'Pembina Utama Muda / IV c',
+            'kepsek_name'        => 'H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.',
+            'kepsek_nip'         => '198408252010011010',
+            'kepsek_pangkat'     => 'Penata Tk.I /III/d',
         ]);
     }
 }

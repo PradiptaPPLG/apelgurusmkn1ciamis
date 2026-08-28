@@ -472,6 +472,11 @@ class KepsekController extends Controller
             'email' => $request->email,
         ]);
 
+        // Sinkronisasi otomatis ke nama penandatangan di AppSetting
+        \App\Models\AppSetting::getInstance()->update([
+            'kepsek_name' => $request->name,
+        ]);
+
         return redirect()->route('kepsek.profile')->with('success', 'Profil Kepala Sekolah berhasil diperbarui!');
     }
 

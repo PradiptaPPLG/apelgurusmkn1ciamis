@@ -15,9 +15,9 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 class AttendanceExporter
 {
     // Kepala Sekolah info fallback constants
-    const KEPSEK_NAME  = 'Drs. H. Asep Gunawan, M.Pd.';
-    const KEPSEK_GOLOK = 'Pembina Utama Muda / IV c';
-    const KEPSEK_NIP   = '19680512 199403 1 005';
+    const KEPSEK_NAME  = 'H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.';
+    const KEPSEK_GOLOK = 'Penata Tk.I /III/d';
+    const KEPSEK_NIP   = '198408252010011010';
 
     public static function getKepsekName(): string
     {

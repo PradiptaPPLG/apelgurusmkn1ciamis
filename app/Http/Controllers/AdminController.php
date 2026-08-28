@@ -892,6 +892,11 @@ class AdminController extends Controller
             'kepsek_pangkat',
         ]));
 
-        return redirect()->route('admin.settings')->with('success', 'Pengaturan aplikasi & sesi apel berhasil disimpan!');
+        // Sinkronisasi otomatis ke akun User Kepala Sekolah
+        \App\Models\User::where('role', 'kepala_sekolah')->update([
+            'name' => $request->kepsek_name,
+        ]);
+
+        return redirect()->route('admin.settings')->with('success', 'Pengaturan aplikasi & identitas Kepala Sekolah berhasil disimpan!');
     }
 }

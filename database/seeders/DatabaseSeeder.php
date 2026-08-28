@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'kepsek@apel.com'],
             [
-                'name'     => 'Kepala Sekolah SMKN 1 Ciamis',
+                'name'     => 'H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.',
                 'password' => Hash::make('kepsek123'),
                 'role'     => 'kepala_sekolah',
             ]
@@ -152,7 +152,7 @@ class DatabaseSeeder extends Seeder
 
         // ---- 2d. Data dari sheet "PNS" (PNS) ----
         $pns = [
-            ['name' => 'H. Cepy Wahyudin, A.Md., S.Kom., S.Kom.', 'nip' => '198408252010011010', 'pangkat' => 'Penata Tk.I /III/d'],
+            ['name' => 'H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.', 'nip' => '198408252010011010', 'pangkat' => 'Penata Tk.I /III/d'],
             ['name' => 'Oneng Dalilah, M.Pd.', 'nip' => '196706221991032006', 'pangkat' => 'Pembina Utama Muda/IV/c'],
             ['name' => 'Dra. Elin Karlinah', 'nip' => '196806051994122006', 'pangkat' => 'Pembina Utama Muda/IV/c'],
             ['name' => 'H. Nanang Aziz S., S.Pd.,M.Pd.', 'nip' => '196704281990031002', 'pangkat' => 'Pembina Utama Muda/IV/c'],

@@ -296,9 +296,9 @@
         <div class="sign-title">Ciamis, {{ $tglCetak }}</div>
         <div class="sign-title">Kepala Sekolah,</div>
         <div class="sign-space"></div>
-        <div class="sign-name">H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.</div>
-        <div class="sign-golok">Penata Tk. I/III/d</div>
-        <div class="sign-nip">NIP. 198408252010011010</div>
+        <div class="sign-name">{{ \App\Services\AttendanceExporter::getKepsekName() }}</div>
+        <div class="sign-golok">{{ \App\Services\AttendanceExporter::getKepsekGolok() }}</div>
+        <div class="sign-nip">NIP. {{ \App\Services\AttendanceExporter::getKepsekNip() }}</div>
     </div>
 </div>
 

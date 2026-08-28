@@ -21,9 +21,9 @@ return new class extends Migration
             $table->string('default_sore_start', 10)->default('14:50');
             $table->string('default_sore_end', 10)->default('15:20');
             $table->integer('default_radius')->default(25);
-            $table->string('kepsek_name')->default('Drs. H. Asep Gunawan, M.Pd.');
-            $table->string('kepsek_nip')->default('19680512 199403 1 005');
-            $table->string('kepsek_pangkat')->default('Pembina Utama Muda / IV c');
+            $table->string('kepsek_name')->default('H. Cepy Wahyudin, A.Md., S.Kom., M.Kom.');
+            $table->string('kepsek_nip')->default('198408252010011010');
+            $table->string('kepsek_pangkat')->default('Penata Tk.I /III/d');
             $table->timestamps();
         });
     }
