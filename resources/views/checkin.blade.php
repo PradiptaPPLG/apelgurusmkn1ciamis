@@ -757,28 +757,52 @@ async function openCameraModal() {
     document.getElementById('cameraInstruction').textContent =
         'Posisikan wajah Anda di dalam lingkaran, lalu ambil foto.';
 
-    try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: 'user',       // front camera
-                width:  { ideal: 640 },
-                height: { ideal: 640 },
-            },
-            audio: false,
-        });
-        cameraVideo.srcObject = cameraStream;
-    } catch (err) {
-        let msg = 'Kamera tidak dapat diakses. Izinkan akses kamera di pengaturan browser, lalu refresh halaman.';
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-            msg = 'Izin kamera ditolak. Buka pengaturan browser → izinkan kamera untuk situs ini → refresh halaman, lalu coba lagi.';
-        } else if (err.name === 'NotFoundError') {
-            msg = 'Tidak ada kamera yang terdeteksi pada perangkat ini. Absensi tidak dapat dilakukan tanpa foto wajah.';
-        } else if (err.name === 'NotReadableError') {
-            msg = 'Kamera sedang digunakan aplikasi lain. Tutup aplikasi kamera lainnya, lalu refresh halaman.';
+    // Try progressively simpler constraints for max device compatibility
+    const constraintSets = [
+        { video: { facingMode: { ideal: 'user' }, width: { ideal: 640 }, height: { ideal: 640 } }, audio: false },
+        { video: { facingMode: 'user' }, audio: false },
+        { video: true, audio: false },
+    ];
+
+    let lastErr = null;
+    for (const constraints of constraintSets) {
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+            break; // success
+        } catch (err) {
+            lastErr = err;
+            console.warn('[Camera] Constraint failed, trying simpler:', err.name, err.message);
+            // No point retrying if user denied or no camera found
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.name === 'NotFoundError') {
+                break;
+            }
+        }
+    }
+
+    if (!cameraStream) {
+        const err = lastErr;
+        console.error('[Camera] getUserMedia failed:', err && err.name, err && err.message);
+        let msg = 'Kamera tidak dapat diakses (' + (err && err.name || 'UnknownError') + '). Izinkan kamera di pengaturan browser, lalu refresh halaman.';
+        if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+            msg = 'Izin kamera ditolak. Klik ikon kamera/gembok di address bar, pilih Izinkan, lalu refresh halaman dan coba lagi.';
+        } else if (err && (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError')) {
+            msg = 'Tidak ada kamera yang terdeteksi pada perangkat ini.';
+        } else if (err && (err.name === 'NotReadableError' || err.name === 'TrackStartError')) {
+            msg = 'Kamera sedang dipakai aplikasi lain. Tutup aplikasi kamera lain, refresh halaman, lalu coba lagi.';
         }
         document.getElementById('cameraErrorMsg').textContent = msg;
         showCameraStep('error');
+        return;
     }
+
+    // Attach stream then play via onloadedmetadata (most reliable cross-browser approach)
+    cameraVideo.srcObject = cameraStream;
+    cameraVideo.muted = true;        // muted is REQUIRED for autoplay to work in most browsers
+    cameraVideo.onloadedmetadata = function () {
+        cameraVideo.play().catch(function (playErr) {
+            console.warn('[Camera] video.play() failed:', playErr);
+        });
+    };
 }
 
 /** Capture current video frame to canvas → compress to JPEG */
