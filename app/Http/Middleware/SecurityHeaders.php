@@ -23,7 +23,9 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'geolocation=(self), camera=(), microphone=()');
+        if (!$response->headers->has('Permissions-Policy')) {
+            $response->headers->set('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=()');
+        }
 
         // Content Security Policy
         $csp = "default-src 'self'; " .
