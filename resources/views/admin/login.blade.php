@@ -34,7 +34,6 @@
                    name="email" 
                    id="email" 
                    class="form-control" 
-                   placeholder="admin@apel.com" 
                    value="{{ old('email') }}" 
                    required 
                    autofocus>
