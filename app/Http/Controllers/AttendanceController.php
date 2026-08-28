@@ -76,13 +76,14 @@ class AttendanceController extends Controller
     public function submit(Request $request)
     {
         $request->validate([
-            'nik' => 'required|string',
-            'code' => 'required|string|size:5',
-            'signature' => 'required|string', // Base64 signature
-            'photo' => 'nullable|string', // Optional Base64 selfie
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'location_name' => 'nullable|string',
+            'nik'            => 'required|string',
+            'code'           => 'required|string|size:5',
+            'signature'      => 'required|string', // Base64 signature
+            'photo'          => 'required|string',  // Mandatory Base64 selfie (face verification)
+            'latitude'       => 'nullable|numeric',
+            'longitude'      => 'nullable|numeric',
+            'location_name'  => 'nullable|string',
+            'device_uuid'    => 'nullable|string|max:36', // UUID from localStorage
         ]);
 
         $code = strtoupper($request->input('code'));
@@ -157,19 +158,45 @@ class AttendanceController extends Controller
             return back()->withErrors(['nik' => 'Anda sudah melakukan absensi untuk sesi apel ini.'])->withInput();
         }
 
-        // 6. Save attendance with race-condition handling
+        // 6. Check if this device has already submitted attendance for this session
+        //    (prevents proxy/titip absen — one device can only check in once per session)
+        $deviceUuid = $request->input('device_uuid');
+        if ($deviceUuid) {
+            $deviceUsed = Attendance::where('apel_session_id', $session->id)
+                ->where('device_uuid', $deviceUuid)
+                ->exists();
+
+            if ($deviceUsed) {
+                return back()->withErrors([
+                    'nik' => 'Perangkat ini sudah digunakan untuk melakukan absensi di sesi ini. Titip absen tidak diizinkan.',
+                ])->withInput();
+            }
+        }
+
+        // 7. Save attendance with race-condition handling
         try {
             Attendance::create([
                 'apel_session_id' => $session->id,
                 'participant_nik' => $participant->nik,
-                'signature' => $request->input('signature'),
-                'photo' => $request->input('photo'),
-                'latitude' => $request->input('latitude'),
-                'longitude' => $request->input('longitude'),
-                'location_name' => $request->input('location_name'),
-                'signed_in_at' => Carbon::now(),
+                'signature'       => $request->input('signature'),
+                'photo'           => $request->input('photo'),
+                'latitude'        => $request->input('latitude'),
+                'longitude'       => $request->input('longitude'),
+                'location_name'   => $request->input('location_name'),
+                'device_uuid'     => $deviceUuid ?? null,
+                'signed_in_at'    => Carbon::now(),
             ]);
         } catch (UniqueConstraintViolationException $e) {
+            // Determine which unique constraint was hit: NIK or device_uuid
+            $isDeviceConflict = $deviceUuid && Attendance::where('apel_session_id', $session->id)
+                ->where('device_uuid', $deviceUuid)
+                ->where('participant_nik', '!=', $participant->nik)
+                ->exists();
+
+            if ($isDeviceConflict) {
+                return back()->withErrors(['nik' => 'Perangkat ini sudah digunakan untuk melakukan absensi di sesi ini. Titip absen tidak diizinkan.'])->withInput();
+            }
+
             return back()->withErrors(['nik' => 'Anda sudah melakukan absensi untuk sesi apel ini.'])->withInput();
         }
 

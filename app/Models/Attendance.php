@@ -17,6 +17,7 @@ class Attendance extends Model
         'latitude',
         'longitude',
         'location_name',
+        'device_uuid',
         'signed_in_at',
     ];
 

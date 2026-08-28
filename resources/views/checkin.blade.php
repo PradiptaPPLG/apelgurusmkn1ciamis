@@ -90,6 +90,7 @@
         <input type="hidden" name="location_name"  id="locationNameInput">
         <input type="hidden" name="photo"          id="photoInput">
         <input type="hidden" name="signature"      id="signatureInput">
+        <input type="hidden" name="device_uuid"    id="deviceUuidInput">
 
         {{-- ① Kode Registrasi Apel --}}
         <div class="form-group">
@@ -147,7 +148,186 @@
     </div>
 </div>
 
+{{-- ══════════════════════════════════════════════════════
+     CAMERA SELFIE MODAL
+     Muncul setelah klik "Kirim Kehadiran", sebelum form benar-benar disubmit.
+     ══════════════════════════════════════════════════════ --}}
+<div id="cameraModal" style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+">
+    <div id="cameraModalContent" style="
+        background: var(--card-bg);
+        border: 1.5px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        max-width: 360px;
+        width: 100%;
+        padding: 2rem 1.75rem;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+        animation: slideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+    ">
+        {{-- Header --}}
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📸</div>
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.4rem;">
+            Verifikasi Wajah
+        </h2>
+        <p id="cameraInstruction" style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem; line-height: 1.5;">
+            Posisikan wajah Anda di dalam lingkaran, lalu ambil foto.
+        </p>
+
+        {{-- ── LIVE CAMERA STEP ── --}}
+        <div id="cameraStep">
+            {{-- Video + oval ring --}}
+            <div style="position: relative; width: 200px; height: 200px; margin: 0 auto 1.25rem;">
+                <video id="cameraVideo"
+                       autoplay
+                       playsinline
+                       muted
+                       style="
+                           width: 200px;
+                           height: 200px;
+                           object-fit: cover;
+                           border-radius: 50%;
+                           display: block;
+                           transform: scaleX(-1); /* mirror for selfie */
+                           background: #000;
+                       "></video>
+                {{-- Oval guide ring --}}
+                <div style="
+                    position: absolute;
+                    inset: -4px;
+                    border-radius: 50%;
+                    border: 4px solid #10b981;
+                    box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+                    pointer-events: none;
+                    animation: pulse-ring 2s ease-in-out infinite;
+                "></div>
+                {{-- Corner hints --}}
+                <div style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:#10b981; font-weight:700; letter-spacing:0.05em; text-shadow:0 1px 3px rgba(0,0,0,0.7); white-space:nowrap;">
+                    POSISIKAN WAJAH DI SINI
+                </div>
+            </div>
+
+            <button type="button" id="captureBtn" class="btn btn-primary btn-block" style="margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-camera"></i> Ambil Foto
+            </button>
+            <button type="button" id="cancelCameraBtn"
+                    style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; text-decoration:underline;">
+                Batal
+            </button>
+        </div>
+
+        {{-- ── PREVIEW / CONFIRM STEP ── --}}
+        <div id="previewStep" style="display: none;">
+            <div style="position: relative; width: 160px; height: 160px; margin: 0 auto 1.25rem;">
+                <img id="capturedPreview"
+                     alt="Foto Wajah"
+                     style="
+                         width: 160px;
+                         height: 160px;
+                         border-radius: 50%;
+                         object-fit: cover;
+                         border: 3px solid #10b981;
+                         display: block;
+                     ">
+                <div style="
+                    position: absolute;
+                    inset: -4px;
+                    border-radius: 50%;
+                    border: 2px solid rgba(16,185,129,0.35);
+                    pointer-events: none;
+                "></div>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Apakah foto sudah jelas? Wajah harus terlihat penuh.
+            </p>
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="button" id="retakeBtn" class="btn btn-secondary" style="flex: 1;">
+                    <i class="fa-solid fa-rotate-left"></i> Ulangi
+                </button>
+                <button type="button" id="usePhotoBtn" class="btn btn-primary" style="flex: 1;">
+                    <i class="fa-solid fa-check"></i> Gunakan Foto
+                </button>
+            </div>
+        </div>
+
+        {{-- ── ERROR STEP ── --}}
+        <div id="cameraErrorStep" style="display: none;">
+            <div style="font-size: 3rem; margin-bottom: 0.75rem;">🚫</div>
+            <p id="cameraErrorMsg" style="font-size: 0.88rem; color: var(--accent-rose); font-weight: 600; margin-bottom: 1.25rem;">
+                Kamera tidak dapat diakses.
+            </p>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
+                Buka <strong>Pengaturan browser</strong>, izinkan akses kamera untuk situs ini, lalu refresh halaman dan coba lagi.
+            </p>
+            <button type="button" id="cancelCameraErrBtn"
+                    class="btn btn-secondary btn-block">
+                <i class="fa-solid fa-xmark"></i> Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 0 0 rgba(16,185,129,0.4); }
+    50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 0 8px rgba(16,185,129,0.0); }
+}
+</style>
+
+{{-- Hidden canvas for photo capture --}}
+<canvas id="captureCanvas" width="160" height="160" style="display:none;"></canvas>
+
 <script>
+// ══════════════════════════════════════════════════════
+//  DEVICE UUID — Identitas Unik Perangkat (Anti Titip Absen)
+// ══════════════════════════════════════════════════════
+
+/**
+ * Generate a UUID v4.
+ * Uses crypto.randomUUID() if available (modern browsers),
+ * falls back to Math.random() for older/low-end Android devices.
+ */
+function generateUUID() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    // Fallback for very old browsers / HP jadul
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+/**
+ * Get or create a stable device UUID stored in localStorage.
+ * This UUID persists across page reloads but resets if the user
+ * manually clears browser data.
+ */
+function getDeviceUUID() {
+    let uuid = localStorage.getItem('device_uuid');
+    if (!uuid) {
+        uuid = generateUUID();
+        localStorage.setItem('device_uuid', uuid);
+    }
+    return uuid;
+}
+
+// Populate the hidden input immediately so it is included on form submit
+const deviceUuidInput = document.getElementById('deviceUuidInput');
+if (deviceUuidInput) {
+    deviceUuidInput.value = getDeviceUUID();
+}
+
 // ══════════════════════════════════════════════════════
 //  ALREADY ATTENDED LOGIC
 // ══════════════════════════════════════════════════════
@@ -537,11 +717,135 @@ function clearSignature() {
 }
 
 // ══════════════════════════════════════════════════════
-//  FORM VALIDATION
+//  FORM VALIDATION + CAMERA SELFIE POPUP
 // ══════════════════════════════════════════════════════
 
+// Camera state
+let cameraStream = null;
+let capturedPhotoDataUrl = null;
+
+const cameraModal     = document.getElementById('cameraModal');
+const cameraVideo     = document.getElementById('cameraVideo');
+const captureCanvas   = document.getElementById('captureCanvas');
+const capturedPreview = document.getElementById('capturedPreview');
+const cameraStep      = document.getElementById('cameraStep');
+const previewStep     = document.getElementById('previewStep');
+const cameraErrorStep = document.getElementById('cameraErrorStep');
+const photoInput      = document.getElementById('photoInput');
+
+/** Show/hide steps inside the camera modal */
+function showCameraStep(step) {
+    cameraStep.style.display      = step === 'camera'  ? 'block' : 'none';
+    previewStep.style.display     = step === 'preview' ? 'block' : 'none';
+    cameraErrorStep.style.display = step === 'error'   ? 'block' : 'none';
+}
+
+/** Stop camera stream and close modal */
+function closeCameraModal() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    cameraModal.style.display = 'none';
+    capturedPhotoDataUrl = null;
+}
+
+/** Open camera modal and request camera access */
+async function openCameraModal() {
+    cameraModal.style.display = 'flex';
+    showCameraStep('camera');
+    document.getElementById('cameraInstruction').textContent =
+        'Posisikan wajah Anda di dalam lingkaran, lalu ambil foto.';
+
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'user',       // front camera
+                width:  { ideal: 640 },
+                height: { ideal: 640 },
+            },
+            audio: false,
+        });
+        cameraVideo.srcObject = cameraStream;
+    } catch (err) {
+        let msg = 'Kamera tidak dapat diakses. Izinkan akses kamera di pengaturan browser, lalu refresh halaman.';
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            msg = 'Izin kamera ditolak. Buka pengaturan browser → izinkan kamera untuk situs ini → refresh halaman, lalu coba lagi.';
+        } else if (err.name === 'NotFoundError') {
+            msg = 'Tidak ada kamera yang terdeteksi pada perangkat ini. Absensi tidak dapat dilakukan tanpa foto wajah.';
+        } else if (err.name === 'NotReadableError') {
+            msg = 'Kamera sedang digunakan aplikasi lain. Tutup aplikasi kamera lainnya, lalu refresh halaman.';
+        }
+        document.getElementById('cameraErrorMsg').textContent = msg;
+        showCameraStep('error');
+    }
+}
+
+/** Capture current video frame to canvas → compress to JPEG */
+function capturePhoto() {
+    const ctx = captureCanvas.getContext('2d');
+    // Draw video frame, mirrored horizontally (selfie)
+    ctx.save();
+    ctx.translate(160, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(cameraVideo, 0, 0, 160, 160);
+    ctx.restore();
+
+    // Crop to circle (clip)
+    // Note: The img display uses border-radius:50%, actual data is square JPEG
+    capturedPhotoDataUrl = captureCanvas.toDataURL('image/jpeg', 0.35);
+
+    capturedPreview.src = capturedPhotoDataUrl;
+    showCameraStep('preview');
+
+    // Stop stream while in preview to save battery
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+}
+
+/** Retake — restart camera */
+async function retakePhoto() {
+    capturedPhotoDataUrl = null;
+    showCameraStep('camera');
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } },
+            audio: false,
+        });
+        cameraVideo.srcObject = cameraStream;
+    } catch (err) {
+        document.getElementById('cameraErrorMsg').textContent = 'Gagal membuka ulang kamera. Refresh halaman dan coba lagi.';
+        showCameraStep('error');
+    }
+}
+
+/** Use the captured photo and actually submit the form */
+function usePhotoAndSubmit() {
+    if (!capturedPhotoDataUrl) return;
+    photoInput.value = capturedPhotoDataUrl;
+    closeCameraModal();
+    // Set signature then submit programmatically
+    document.getElementById('signatureInput').value = canvas.toDataURL('image/png');
+    document.getElementById('apelForm').submit();
+}
+
+// ── Button wiring ────────────────────────────────────
+document.getElementById('captureBtn').addEventListener('click', capturePhoto);
+document.getElementById('retakeBtn').addEventListener('click', retakePhoto);
+document.getElementById('usePhotoBtn').addEventListener('click', usePhotoAndSubmit);
+document.getElementById('cancelCameraBtn').addEventListener('click', closeCameraModal);
+document.getElementById('cancelCameraErrBtn').addEventListener('click', closeCameraModal);
+
+// Close on backdrop click
+cameraModal.addEventListener('click', function (e) {
+    if (e.target === cameraModal) closeCameraModal();
+});
+
+/** validateForm — intercepts form submit → opens camera popup instead */
 function validateForm() {
-    // Double-check: button should already be disabled, but extra safety
+    // Safety: button should already be disabled, but extra guard
     if (submitBtn.disabled) {
         alert('Absensi tidak dapat dilakukan. Pastikan GPS aktif dan Anda berada dalam area apel.');
         return false;
@@ -550,8 +854,16 @@ function validateForm() {
         alert('Tanda tangan wajib diisi sebelum mengirimkan kehadiran.');
         return false;
     }
-    document.getElementById('signatureInput').value = canvas.toDataURL('image/png');
-    return true;
+
+    // Check if browser supports getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Browser Anda tidak mendukung akses kamera. Gunakan Chrome atau browser modern untuk melakukan absensi.');
+        return false;
+    }
+
+    // Open camera modal instead of submitting directly
+    openCameraModal();
+    return false; // always intercept — actual submit happens inside usePhotoAndSubmit()
 }
 </script>
 @endsection
