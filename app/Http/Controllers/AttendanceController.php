@@ -62,11 +62,18 @@ class AttendanceController extends Controller
 
         $selectedCode = $code ? strtoupper($code) : '';
 
-        return view('checkin', [
+        // Explicitly allow camera access.
+        // Ngrok and some reverse proxies send Permissions-Policy: camera=()
+        // which silently blocks getUserMedia without showing a permission dialog.
+        // Returning this header from Laravel overrides that restriction.
+        return response()->view('checkin', [
             'openSession'  => $openSession,
             'urlSession'   => $urlSession,
             'selectedCode' => $selectedCode,
             'now'          => $now,
+        ])->withHeaders([
+            'Permissions-Policy' => 'camera=*, microphone=(), geolocation=*',
+            'Feature-Policy'     => 'camera *',   // legacy Safari/older browsers
         ]);
     }
 
