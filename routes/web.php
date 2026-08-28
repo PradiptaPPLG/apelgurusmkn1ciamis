@@ -42,6 +42,30 @@ Route::get('/api/apel-location', [AdminController::class, 'getApelLocation'])
     ->middleware('throttle:300,1')
     ->name('api.apel.location');
 
+// Public API: check if device already submitted attendance today
+Route::get('/api/check-attended', function (\Illuminate\Http\Request $request) {
+    $deviceUuid = $request->query('device_uuid');
+    $code       = $request->query('code');
+    $today      = \Carbon\Carbon::today();
+
+    if ($deviceUuid) {
+        $query = \App\Models\Attendance::where('device_uuid', $deviceUuid)
+            ->whereDate('signed_in_at', $today);
+
+        if ($code) {
+            $query->whereHas('session', function ($sq) use ($code) {
+                $sq->where('code', strtoupper($code));
+            });
+        }
+
+        if ($query->exists()) {
+            return response()->json(['attended' => true]);
+        }
+    }
+
+    return response()->json(['attended' => false]);
+})->middleware('throttle:300,1');
+
 // Admin Authentication (alias untuk /login sudah di atas - Rate limited to 5 attempts per minute)
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'login'])

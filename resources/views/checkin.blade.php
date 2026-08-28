@@ -180,13 +180,13 @@
             Verifikasi Wajah
         </h2>
         <p id="cameraInstruction" style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem; line-height: 1.5;">
-            Posisikan wajah Anda di dalam lingkaran, lalu ambil foto.
+            Posisikan wajah Anda tepat di dalam lingkaran, lalu ambil foto.
         </p>
 
         {{-- ── LIVE CAMERA STEP ── --}}
         <div id="cameraStep">
             {{-- Video + oval ring --}}
-            <div style="position: relative; width: 200px; height: 200px; margin: 0 auto 1.25rem;">
+            <div style="position: relative; width: 200px; height: 200px; margin: 0 auto 1.25rem; overflow: hidden; border-radius: 50%;">
                 <video id="cameraVideo"
                        autoplay
                        playsinline
@@ -200,23 +200,58 @@
                            transform: scaleX(-1); /* mirror for selfie */
                            background: #000;
                        "></video>
-                {{-- Oval guide ring --}}
-                <div style="
+
+                {{-- Dynamic Scanning Line --}}
+                <div id="faceScanBeam" style="
                     position: absolute;
-                    inset: -4px;
+                    left: 0;
+                    right: 0;
+                    height: 3px;
+                    background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
+                    box-shadow: 0 0 10px #38bdf8;
+                    pointer-events: none;
+                    animation: scan-beam 1.8s ease-in-out infinite;
+                "></div>
+
+                {{-- Guide Ring --}}
+                <div id="faceGuideRing" style="
+                    position: absolute;
+                    inset: 0;
                     border-radius: 50%;
-                    border: 4px solid #10b981;
+                    border: 4px solid #ef4444;
                     box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
                     pointer-events: none;
-                    animation: pulse-ring 2s ease-in-out infinite;
+                    animation: pulse-red 2s ease-in-out infinite;
+                    transition: border-color 0.25s ease, box-shadow 0.25s ease;
                 "></div>
-                {{-- Corner hints --}}
-                <div style="position:absolute; bottom:8px; left:50%; transform:translateX(-50%); font-size:0.7rem; color:#10b981; font-weight:700; letter-spacing:0.05em; text-shadow:0 1px 3px rgba(0,0,0,0.7); white-space:nowrap;">
-                    POSISIKAN WAJAH DI SINI
+
+                {{-- Status Badge --}}
+                <div id="faceStatusBadge" style="
+                    position: absolute;
+                    bottom: 8px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 0.68rem;
+                    font-weight: 700;
+                    letter-spacing: 0.03em;
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    background: rgba(15, 23, 42, 0.85);
+                    border: 1px solid rgba(239, 68, 68, 0.4);
+                    color: #f87171;
+                    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+                    white-space: nowrap;
+                    transition: all 0.25s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    z-index: 10;
+                ">
+                    <i class="fa-solid fa-triangle-exclamation"></i> WAJAH BELUM TERDETEKSI
                 </div>
             </div>
 
-            <button type="button" id="captureBtn" class="btn btn-primary btn-block" style="margin-bottom: 0.75rem;">
+            <button type="button" id="captureBtn" class="btn btn-primary btn-block" disabled style="margin-bottom: 0.75rem; opacity: 0.45; cursor: not-allowed; transition: all 0.25s ease;">
                 <i class="fa-solid fa-camera"></i> Ambil Foto
             </button>
             <button type="button" id="cancelCameraBtn"
@@ -247,7 +282,7 @@
                 "></div>
             </div>
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-                Apakah foto sudah jelas? Wajah harus terlihat penuh.
+                Apakah foto sudah jelas? Pastikan wajah Anda terlihat dengan baik.
             </p>
             <div style="display: flex; gap: 0.75rem;">
                 <button type="button" id="retakeBtn" class="btn btn-secondary" style="flex: 1;">
@@ -277,14 +312,35 @@
 </div>
 
 <style>
-@keyframes pulse-ring {
-    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 0 0 rgba(16,185,129,0.4); }
-    50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 0 8px rgba(16,185,129,0.0); }
+@keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 12px rgba(16,185,129,0.5); }
+    50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 24px rgba(16,185,129,0.85); }
+}
+@keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 10px rgba(239,68,68,0.3); }
+    50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 18px rgba(239,68,68,0.6); }
+}
+@keyframes scan-beam {
+    0%   { top: 5%; opacity: 0; }
+    25%  { opacity: 0.85; }
+    75%  { opacity: 0.85; }
+    100% { top: 92%; opacity: 0; }
+}
+.btn-pulse {
+    animation: btn-glow 1.5s ease-in-out infinite;
+}
+@keyframes btn-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
 }
 </style>
 
 {{-- Hidden canvas for photo capture --}}
 <canvas id="captureCanvas" width="160" height="160" style="display:none;"></canvas>
+
+{{-- Face Tracking Libraries (Local, Offline-ready) --}}
+<script src="/js/tracking-min.js"></script>
+<script src="/js/face-min.js"></script>
 
 <script>
 // ══════════════════════════════════════════════════════
@@ -333,35 +389,84 @@ if (deviceUuidInput) {
 // ══════════════════════════════════════════════════════
 function checkAlreadyAttended() {
     const codeInput = document.getElementById('code');
-    if (!codeInput) return false;
+    const d = new Date();
+    const localDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     
-    const code = codeInput.value.toUpperCase();
-    if (code) {
-        const today = new Date().toISOString().split('T')[0];
-        const hasAttended = localStorage.getItem(`attended_${code}_${today}`);
-        
-        if (hasAttended === 'true') {
-            document.getElementById('apelForm').style.display = 'none';
-            document.getElementById('alreadyAttendedBanner').style.display = 'block';
-            
-            // Hide distance and GPS banners just to be clean
-            document.getElementById('gpsLoadingBanner').style.display = 'none';
-            document.getElementById('gpsBlockBanner').style.display = 'none';
-            document.getElementById('gpsOutsideBanner').style.display = 'none';
-            document.getElementById('gpsOkBanner').style.display = 'none';
-            document.getElementById('distanceBar').style.display = 'none';
-            return true;
-        } else {
-            document.getElementById('apelForm').style.display = 'block';
-            document.getElementById('alreadyAttendedBanner').style.display = 'none';
-            return false;
+    let isAttended = false;
+    const currentCode = codeInput ? codeInput.value.trim().toUpperCase() : '';
+
+    if (currentCode) {
+        if (
+            localStorage.getItem(`attended_${currentCode}_${localDate}`) === 'true' ||
+            localStorage.getItem(`attended_${currentCode}`) === 'true'
+        ) {
+            isAttended = true;
         }
     }
-    return false;
+
+    // Also check last attended session for today
+    const lastCode = localStorage.getItem('last_attended_session_code');
+    const lastDate = localStorage.getItem('last_attended_date');
+    if (lastDate === localDate && lastCode) {
+        if (!currentCode || currentCode === lastCode) {
+            if (codeInput && !currentCode) codeInput.value = lastCode;
+            isAttended = true;
+        }
+    }
+
+    // Also check generic device attended flag today
+    if (localStorage.getItem(`device_attended_${localDate}`) === 'true') {
+        isAttended = true;
+    }
+
+    if (isAttended) {
+        document.getElementById('apelForm').style.display = 'none';
+        document.getElementById('alreadyAttendedBanner').style.display = 'block';
+        
+        // Hide distance and GPS banners just to be clean
+        if (document.getElementById('gpsLoadingBanner')) document.getElementById('gpsLoadingBanner').style.display = 'none';
+        if (document.getElementById('gpsBlockBanner'))   document.getElementById('gpsBlockBanner').style.display = 'none';
+        if (document.getElementById('gpsOutsideBanner')) document.getElementById('gpsOutsideBanner').style.display = 'none';
+        if (document.getElementById('gpsOkBanner'))      document.getElementById('gpsOkBanner').style.display = 'none';
+        if (document.getElementById('distanceBar'))      document.getElementById('distanceBar').style.display = 'none';
+        return true;
+    } else {
+        document.getElementById('apelForm').style.display = 'block';
+        document.getElementById('alreadyAttendedBanner').style.display = 'none';
+        return false;
+    }
+}
+
+// Check on server via API asynchronously as well (ensures sync across tabs/devices)
+async function verifyServerAttendance() {
+    const uuid = getDeviceUUID();
+    const codeInput = document.getElementById('code');
+    const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+    
+    try {
+        const res = await fetch(`/api/check-attended?device_uuid=${encodeURIComponent(uuid)}&code=${encodeURIComponent(code)}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.attended) {
+                const d = new Date();
+                const localDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                if (code) {
+                    localStorage.setItem(`attended_${code}_${localDate}`, 'true');
+                    localStorage.setItem('last_attended_session_code', code);
+                    localStorage.setItem('last_attended_date', localDate);
+                }
+                localStorage.setItem(`device_attended_${localDate}`, 'true');
+                checkAlreadyAttended();
+            }
+        }
+    } catch (e) {
+        console.warn('[AttendanceCheck] API warning:', e);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAlreadyAttended();
+    verifyServerAttendance();
 });
 
 document.getElementById('code').addEventListener('input', () => {
@@ -720,9 +825,12 @@ function clearSignature() {
 //  FORM VALIDATION + CAMERA SELFIE POPUP
 // ══════════════════════════════════════════════════════
 
-// Camera state
+// Camera & Face Detection state
 let cameraStream = null;
 let capturedPhotoDataUrl = null;
+let isFaceDetected = false;
+let faceCheckInterval = null;
+let lastFaceDetectedTime = 0;
 
 const cameraModal     = document.getElementById('cameraModal');
 const cameraVideo     = document.getElementById('cameraVideo');
@@ -733,6 +841,189 @@ const previewStep     = document.getElementById('previewStep');
 const cameraErrorStep = document.getElementById('cameraErrorStep');
 const photoInput      = document.getElementById('photoInput');
 
+// Dedicated offscreen canvas for ultra-fast (sub-5ms) face detection processing
+const detectorCanvas = document.createElement('canvas');
+detectorCanvas.width = 160;
+detectorCanvas.height = 160;
+const detectorCtx = detectorCanvas.getContext('2d', { willReadFrequently: true });
+
+// Check for native hardware-accelerated Chrome FaceDetector API
+let nativeFaceDetector = null;
+if (typeof window.FaceDetector !== 'undefined') {
+    try {
+        nativeFaceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 2 });
+    } catch (e) {
+        nativeFaceDetector = null;
+    }
+}
+
+// Fallback JS Face Tracker (tracking.js Viola-Jones Haar Cascade)
+let jsFaceTracker = null;
+function initJsFaceTracker() {
+    if (!jsFaceTracker && typeof tracking !== 'undefined' && tracking.ObjectTracker) {
+        try {
+            jsFaceTracker = new tracking.ObjectTracker('face');
+            jsFaceTracker.setInitialScale(2.5);
+            jsFaceTracker.setStepSize(1.8);
+            jsFaceTracker.setEdgesDensity(0.1);
+        } catch (e) {
+            console.warn('[FaceDetection] Tracker init:', e);
+        }
+    }
+}
+
+/**
+ * Updates UI based on face detection state.
+ * @param {boolean} detected
+ */
+function setFaceDetectedState(detected) {
+    isFaceDetected = detected;
+    const ring = document.getElementById('faceGuideRing');
+    const badge = document.getElementById('faceStatusBadge');
+    const instruction = document.getElementById('cameraInstruction');
+    const btn = document.getElementById('captureBtn');
+    const scanBeam = document.getElementById('faceScanBeam');
+
+    if (!ring || !badge || !btn) return;
+
+    if (detected) {
+        ring.style.borderColor = '#10b981';
+        ring.style.animation = 'pulse-green 1.5s ease-in-out infinite';
+        badge.style.color = '#10b981';
+        badge.style.borderColor = 'rgba(16,185,129,0.4)';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> WAJAH TERDETEKSI';
+        if (instruction) {
+            instruction.innerHTML = '<span style="color: #10b981; font-weight: 600;">Wajah terdeteksi dengan baik!</span> Silakan klik tombol Ambil Foto.';
+        }
+        if (scanBeam) scanBeam.style.display = 'none';
+
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.style.pointerEvents = 'auto';
+        btn.classList.add('btn-pulse');
+    } else {
+        ring.style.borderColor = '#ef4444';
+        ring.style.animation = 'pulse-red 2s ease-in-out infinite';
+        badge.style.color = '#f87171';
+        badge.style.borderColor = 'rgba(239,68,68,0.4)';
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> WAJAH BELUM TERDETEKSI';
+        if (instruction) {
+            instruction.textContent = 'Posisikan wajah Anda tepat di dalam lingkaran agar tombol foto aktif.';
+        }
+        if (scanBeam) scanBeam.style.display = 'block';
+
+        btn.disabled = true;
+        btn.style.opacity = '0.45';
+        btn.style.cursor = 'not-allowed';
+        btn.style.pointerEvents = 'none';
+        btn.classList.remove('btn-pulse');
+    }
+}
+
+/**
+ * Checks if a face exists in the current camera frame.
+ * @returns {Promise<boolean>}
+ */
+async function detectFaceInCurrentFrame() {
+    if (!cameraVideo || cameraVideo.readyState < 2 || cameraVideo.paused || cameraVideo.ended) {
+        return false;
+    }
+
+    try {
+        // Draw downscaled 160x160 frame for sub-5ms processing
+        detectorCtx.drawImage(cameraVideo, 0, 0, 160, 160);
+    } catch (err) {
+        return false;
+    }
+
+    // 1. Native Chrome/Edge FaceDetector API (fastest, high precision)
+    if (nativeFaceDetector) {
+        try {
+            const faces = await nativeFaceDetector.detect(detectorCanvas);
+            if (faces && faces.length > 0) {
+                const box = faces[0].boundingBox;
+                // Ensure face has reasonable dimension (at least ~25px in 160x160 canvas)
+                if (box && box.width >= 24 && box.height >= 24) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (e) {
+            // Fallback to JS tracker below if native throws
+        }
+    }
+
+    // 2. tracking.js Haar Cascade Classifier (offline & universal fallback)
+    initJsFaceTracker();
+    if (typeof tracking !== 'undefined' && tracking.ViolaJones && tracking.ViolaJones.classifiers && tracking.ViolaJones.classifiers['face']) {
+        try {
+            const imgData = detectorCtx.getImageData(0, 0, 160, 160);
+            const rects = tracking.ViolaJones.detect(
+                imgData.data,
+                160,
+                160,
+                jsFaceTracker ? jsFaceTracker.getInitialScale() : 2.5,
+                jsFaceTracker ? jsFaceTracker.getScaleFactor() : 1.25,
+                jsFaceTracker ? jsFaceTracker.getStepSize() : 1.8,
+                jsFaceTracker ? jsFaceTracker.getEdgesDensity() : 0.1,
+                tracking.ViolaJones.classifiers['face']
+            );
+            if (rects && rects.length > 0) {
+                const valid = rects.some(r => r.width >= 26 && r.height >= 26);
+                if (valid) return true;
+            }
+        } catch (e) {
+            console.warn('[FaceDetection] ViolaJones detector warning:', e);
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Starts continuous real-time face detection loop (runs every 180ms).
+ */
+function startFaceDetectionLoop() {
+    stopFaceDetectionLoop();
+    setFaceDetectedState(false);
+    lastFaceDetectedTime = 0;
+
+    let isChecking = false;
+    faceCheckInterval = setInterval(async () => {
+        if (isChecking || !cameraStream) return;
+        isChecking = true;
+        try {
+            const hasFace = await detectFaceInCurrentFrame();
+            const now = Date.now();
+            if (hasFace) {
+                lastFaceDetectedTime = now;
+                setFaceDetectedState(true);
+            } else {
+                // Smoothing: wait 450ms before switching back to "not detected"
+                // so natural blinks or minor head movements don't flicker the button
+                if (now - lastFaceDetectedTime > 450) {
+                    setFaceDetectedState(false);
+                }
+            }
+        } catch (err) {
+            console.warn('[FaceDetection] loop error:', err);
+        } finally {
+            isChecking = false;
+        }
+    }, 180);
+}
+
+/**
+ * Stops the face detection loop.
+ */
+function stopFaceDetectionLoop() {
+    if (faceCheckInterval) {
+        clearInterval(faceCheckInterval);
+        faceCheckInterval = null;
+    }
+}
+
 /** Show/hide steps inside the camera modal */
 function showCameraStep(step) {
     cameraStep.style.display      = step === 'camera'  ? 'block' : 'none';
@@ -740,22 +1031,23 @@ function showCameraStep(step) {
     cameraErrorStep.style.display = step === 'error'   ? 'block' : 'none';
 }
 
-/** Stop camera stream and close modal */
+/** Stop camera stream, tracker, and close modal */
 function closeCameraModal() {
+    stopFaceDetectionLoop();
     if (cameraStream) {
         cameraStream.getTracks().forEach(t => t.stop());
         cameraStream = null;
     }
     cameraModal.style.display = 'none';
     capturedPhotoDataUrl = null;
+    setFaceDetectedState(false);
 }
 
 /** Open camera modal and request camera access */
 async function openCameraModal() {
     cameraModal.style.display = 'flex';
     showCameraStep('camera');
-    document.getElementById('cameraInstruction').textContent =
-        'Posisikan wajah Anda di dalam lingkaran, lalu ambil foto.';
+    setFaceDetectedState(false);
 
     // Try progressively simpler constraints for max device compatibility
     const constraintSets = [
@@ -772,7 +1064,6 @@ async function openCameraModal() {
         } catch (err) {
             lastErr = err;
             console.warn('[Camera] Constraint failed, trying simpler:', err.name, err.message);
-            // No point retrying if user denied or no camera found
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.name === 'NotFoundError') {
                 break;
             }
@@ -795,18 +1086,29 @@ async function openCameraModal() {
         return;
     }
 
-    // Attach stream then play via onloadedmetadata (most reliable cross-browser approach)
+    // Attach stream then play and start real-time face detection
     cameraVideo.srcObject = cameraStream;
-    cameraVideo.muted = true;        // muted is REQUIRED for autoplay to work in most browsers
+    cameraVideo.muted = true;
     cameraVideo.onloadedmetadata = function () {
-        cameraVideo.play().catch(function (playErr) {
+        cameraVideo.play().then(() => {
+            startFaceDetectionLoop();
+        }).catch(function (playErr) {
             console.warn('[Camera] video.play() failed:', playErr);
         });
     };
 }
 
 /** Capture current video frame to canvas → compress to JPEG */
-function capturePhoto() {
+async function capturePhoto() {
+    // Extra validation: Ensure face is actively detected
+    if (!isFaceDetected) {
+        const hasFaceNow = await detectFaceInCurrentFrame();
+        if (!hasFaceNow) {
+            alert('Wajah tidak terdeteksi! Harap posisikan wajah Anda tepat di dalam lingkaran.');
+            return;
+        }
+    }
+
     const ctx = captureCanvas.getContext('2d');
     // Draw video frame, mirrored horizontally (selfie)
     ctx.save();
@@ -815,11 +1117,11 @@ function capturePhoto() {
     ctx.drawImage(cameraVideo, 0, 0, 160, 160);
     ctx.restore();
 
-    // Crop to circle (clip)
-    // Note: The img display uses border-radius:50%, actual data is square JPEG
-    capturedPhotoDataUrl = captureCanvas.toDataURL('image/jpeg', 0.35);
+    // Compress to high quality JPEG
+    capturedPhotoDataUrl = captureCanvas.toDataURL('image/jpeg', 0.82);
 
     capturedPreview.src = capturedPhotoDataUrl;
+    stopFaceDetectionLoop();
     showCameraStep('preview');
 
     // Stop stream while in preview to save battery
@@ -829,16 +1131,23 @@ function capturePhoto() {
     }
 }
 
-/** Retake — restart camera */
+/** Retake — restart camera and detection */
 async function retakePhoto() {
     capturedPhotoDataUrl = null;
     showCameraStep('camera');
+    setFaceDetectedState(false);
     try {
         cameraStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } },
             audio: false,
         });
         cameraVideo.srcObject = cameraStream;
+        cameraVideo.muted = true;
+        cameraVideo.onloadedmetadata = function () {
+            cameraVideo.play().then(() => {
+                startFaceDetectionLoop();
+            }).catch(e => console.warn(e));
+        };
     } catch (err) {
         document.getElementById('cameraErrorMsg').textContent = 'Gagal membuka ulang kamera. Refresh halaman dan coba lagi.';
         showCameraStep('error');
@@ -869,7 +1178,6 @@ cameraModal.addEventListener('click', function (e) {
 
 /** validateForm — intercepts form submit → opens camera popup instead */
 function validateForm() {
-    // Safety: button should already be disabled, but extra guard
     if (submitBtn.disabled) {
         alert('Absensi tidak dapat dilakukan. Pastikan GPS aktif dan Anda berada dalam area apel.');
         return false;
@@ -879,15 +1187,13 @@ function validateForm() {
         return false;
     }
 
-    // Check if browser supports getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('Browser Anda tidak mendukung akses kamera. Gunakan Chrome atau browser modern untuk melakukan absensi.');
         return false;
     }
 
-    // Open camera modal instead of submitting directly
     openCameraModal();
-    return false; // always intercept — actual submit happens inside usePhotoAndSubmit()
+    return false;
 }
 </script>
 @endsection

@@ -46,7 +46,7 @@
     </div>
     @endif
 
-    <a href="{{ route('apel.index') }}" class="btn btn-primary btn-block">
+    <a href="{{ session('session_code') ? route('apel.index', ['code' => session('session_code')]) : route('apel.index') }}" class="btn btn-primary btn-block">
         <i class="fa-solid fa-rotate-left"></i> Kembali ke Form Presensi
     </a>
 
@@ -55,15 +55,21 @@
     </div>
 </div>
 
-@if(session('session_code'))
 <script>
-    // Set a flag in localStorage that this device has checked in for this session
-    const sessionCode = "{{ session('session_code') }}";
-    if (sessionCode) {
-        const today = new Date().toISOString().split('T')[0];
-        localStorage.setItem(`attended_${sessionCode.toUpperCase()}_${today}`, 'true');
-    }
+    (function() {
+        const sessionCode = "{{ session('session_code') }}";
+        const d = new Date();
+        const localDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        
+        if (sessionCode) {
+            const codeUpper = sessionCode.toUpperCase();
+            localStorage.setItem(`attended_${codeUpper}_${localDate}`, 'true');
+            localStorage.setItem(`attended_${codeUpper}`, 'true');
+            localStorage.setItem('last_attended_session_code', codeUpper);
+            localStorage.setItem('last_attended_date', localDate);
+        }
+        localStorage.setItem(`device_attended_${localDate}`, 'true');
+    })();
 </script>
-@endif
 
 @endsection
