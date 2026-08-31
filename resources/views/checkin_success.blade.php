@@ -65,10 +65,7 @@
             const codeUpper = sessionCode.toUpperCase();
             localStorage.setItem(`attended_${codeUpper}_${localDate}`, 'true');
             localStorage.setItem(`attended_${codeUpper}`, 'true');
-            localStorage.setItem('last_attended_session_code', codeUpper);
-            localStorage.setItem('last_attended_date', localDate);
         }
-        localStorage.setItem(`device_attended_${localDate}`, 'true');
     })();
 </script>
 

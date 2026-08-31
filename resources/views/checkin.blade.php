@@ -85,12 +85,13 @@
         @csrf
 
         {{-- Silent hidden inputs --}}
-        <input type="hidden" name="latitude"       id="latitude">
-        <input type="hidden" name="longitude"      id="longitude">
-        <input type="hidden" name="location_name"  id="locationNameInput">
-        <input type="hidden" name="photo"          id="photoInput">
-        <input type="hidden" name="signature"      id="signatureInput">
-        <input type="hidden" name="device_uuid"    id="deviceUuidInput">
+        <input type="hidden" name="latitude"        id="latitude">
+        <input type="hidden" name="longitude"       id="longitude">
+        <input type="hidden" name="location_name"   id="locationNameInput">
+        <input type="hidden" name="photo"           id="photoInput">
+        <input type="hidden" name="signature"       id="signatureInput">
+        <input type="hidden" name="device_uuid"     id="deviceUuidInput">
+        <input type="hidden" name="face_descriptor" id="faceDescriptorInput">
 
         {{-- ① Kode Registrasi Apel --}}
         <div class="form-group">
@@ -528,13 +529,16 @@ function generateUUID() {
 }
 
 /**
- * Get or create a stable device UUID stored in localStorage.
- * This UUID persists across page reloads but resets if the user
- * manually clears browser data.
+ * Get or create a stable device UUID stored in localStorage (standard 36-char UUID v4).
+ * This UUID persists across page reloads to prevent proxy attendance (titip absen).
  */
 function getDeviceUUID() {
     let uuid = localStorage.getItem('device_uuid');
-    if (!uuid) {
+    if (uuid && uuid.includes('|')) {
+        uuid = uuid.split('|')[0];
+        localStorage.setItem('device_uuid', uuid);
+    }
+    if (!uuid || uuid.length !== 36) {
         uuid = generateUUID();
         localStorage.setItem('device_uuid', uuid);
     }
@@ -1299,6 +1303,11 @@ function usePhotoAndSubmit() {
     closeCameraModal();
     // Set signature then submit programmatically
     document.getElementById('signatureInput').value = canvas.toDataURL('image/png');
+    // Include face descriptor if face-api verification was performed
+    const descInput = document.getElementById('faceDescriptorInput');
+    if (descInput && window._lastFaceDescriptor) {
+        descInput.value = JSON.stringify(Array.from(window._lastFaceDescriptor));
+    }
     document.getElementById('apelForm').submit();
 }
 

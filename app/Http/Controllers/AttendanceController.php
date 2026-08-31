@@ -83,18 +83,30 @@ class AttendanceController extends Controller
     public function submit(Request $request)
     {
         $request->validate([
-            'nik'            => 'required|string',
-            'code'           => 'required|string|size:5',
-            'signature'      => 'required|string', // Base64 signature
-            'photo'          => 'required|string',  // Mandatory Base64 selfie (face verification)
-            'latitude'       => 'nullable|numeric',
-            'longitude'      => 'nullable|numeric',
-            'location_name'  => 'nullable|string',
-            'device_uuid'    => 'nullable|string|max:36', // UUID from localStorage
+            'nik'             => 'required|string',
+            'code'            => 'required|string|size:5',
+            'signature'       => 'required|string', // Base64 signature
+            'photo'           => 'required|string',  // Mandatory Base64 selfie (face verification)
+            'latitude'        => 'nullable|numeric',
+            'longitude'       => 'nullable|numeric',
+            'location_name'   => 'nullable|string',
+            'device_uuid'     => 'nullable|string|max:36',  // Standard UUID v4
+            'face_descriptor' => 'nullable|string',          // JSON array of 128-D face embeddings
         ]);
 
         $code = strtoupper($request->input('code'));
         $nik = $request->input('nik');
+
+        // Validate photo & signature payload format
+        $photo = $request->input('photo');
+        if (!preg_match('/^data:image\/(jpeg|jpg|png);base64,/', $photo)) {
+            return back()->withErrors(['photo' => 'Format foto selfie tidak valid. Silakan gunakan kamera pada aplikasi.'])->withInput();
+        }
+
+        $signature = $request->input('signature');
+        if (!preg_match('/^data:image\/png;base64,/', $signature)) {
+            return back()->withErrors(['signature' => 'Format tanda tangan tidak valid. Silakan tanda tangan ulang.'])->withInput();
+        }
 
         // 1. Find the participant in master data by NIK, NIP, or Other ID
         $participant = Participant::where('nik', $nik)
@@ -163,6 +175,35 @@ class AttendanceController extends Controller
 
         if ($exists) {
             return back()->withErrors(['nik' => 'Anda sudah melakukan absensi untuk sesi apel ini.'])->withInput();
+        }
+
+        // 5b. SERVER-SIDE FACE DESCRIPTOR VALIDATION
+        // If the participant has a registered master face descriptor and descriptor is sent,
+        // validate the submitted descriptor against it using Euclidean distance.
+        $submittedDescriptorRaw = $request->input('face_descriptor');
+        if ($participant->face_descriptor && $submittedDescriptorRaw) {
+            $masterDescriptor    = json_decode($participant->face_descriptor, true);
+            $submittedDescriptor = json_decode($submittedDescriptorRaw, true);
+
+            if (
+                is_array($masterDescriptor) && count($masterDescriptor) === 128 &&
+                is_array($submittedDescriptor) && count($submittedDescriptor) === 128
+            ) {
+                // Calculate Euclidean distance between the two 128-D vectors
+                $sumSquares = 0.0;
+                for ($i = 0; $i < 128; $i++) {
+                    $diff = ((float) $masterDescriptor[$i]) - ((float) $submittedDescriptor[$i]);
+                    $sumSquares += $diff * $diff;
+                }
+                $distance = sqrt($sumSquares);
+
+                // Reject if distance exceeds threshold (faces do not match)
+                if ($distance > 0.55) {
+                    return back()->withErrors([
+                        'nik' => 'Verifikasi wajah gagal di server. Wajah yang difoto tidak cocok dengan wajah terdaftar untuk NIK ini (jarak biometrik: ' . round($distance, 3) . '). Gunakan wajah Anda sendiri.',
+                    ])->withInput();
+                }
+            }
         }
 
         // 6. Check if this device has already submitted attendance for this session

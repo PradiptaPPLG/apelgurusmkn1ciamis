@@ -23,6 +23,8 @@ class Participant extends Model
         'jabatan',
         'jenis_kepegawaian',
         'status',
+        'face_photo',
+        'face_descriptor',
     ];
 
     /**

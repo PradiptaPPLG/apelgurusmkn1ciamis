@@ -18,7 +18,7 @@ Route::get('/', function () {
 
 Route::get('/apel/{code?}', [AttendanceController::class, 'index'])->name('apel.index');
 Route::post('/apel/submit', [AttendanceController::class, 'submit'])
-    ->middleware('throttle:300,1')
+    ->middleware('throttle:120,1')
     ->name('apel.submit');
 Route::get('/apel-sukses', [AttendanceController::class, 'success'])->name('apel.success');
 
