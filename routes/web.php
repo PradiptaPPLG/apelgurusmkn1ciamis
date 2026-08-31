@@ -42,23 +42,20 @@ Route::get('/api/apel-location', [AdminController::class, 'getApelLocation'])
     ->middleware('throttle:300,1')
     ->name('api.apel.location');
 
-// Public API: check if device already submitted attendance today
+// Public API: check if device already submitted attendance for THIS SPECIFIC session code
 Route::get('/api/check-attended', function (\Illuminate\Http\Request $request) {
     $deviceUuid = $request->query('device_uuid');
     $code       = $request->query('code');
-    $today      = \Carbon\Carbon::today();
 
-    if ($deviceUuid) {
-        $query = \App\Models\Attendance::where('device_uuid', $deviceUuid)
-            ->whereDate('signed_in_at', $today);
+    if ($deviceUuid && $code) {
+        $code = strtoupper(trim($code));
+        $exists = \App\Models\Attendance::where('device_uuid', $deviceUuid)
+            ->whereHas('session', function ($sq) use ($code) {
+                $sq->where('code', $code);
+            })
+            ->exists();
 
-        if ($code) {
-            $query->whereHas('session', function ($sq) use ($code) {
-                $sq->where('code', strtoupper($code));
-            });
-        }
-
-        if ($query->exists()) {
+        if ($exists) {
             return response()->json(['attended' => true]);
         }
     }

@@ -8,7 +8,7 @@
 
     {{-- Header: text only, no logo icon --}}
     <div class="brand-header" style="margin-bottom: 1.5rem;">
-        <h1 class="brand-title">Asign Guru</h1>
+        <h1 class="brand-title">a-Sign Guru</h1>
     </div>
 
     {{-- Error Alerts --}}
@@ -149,162 +149,88 @@
 </div>
 
 {{-- ══════════════════════════════════════════════════════
-     CAMERA SELFIE MODAL
-     Muncul setelah klik "Kirim Kehadiran", sebelum form benar-benar disubmit.
+     CAMERA SELFIE MODAL — Simple & Clean
      ══════════════════════════════════════════════════════ --}}
-<div id="cameraModal" style="
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.82);
-    backdrop-filter: blur(10px);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-">
-    <div id="cameraModalContent" style="
-        background: var(--card-bg);
-        border: 1.5px solid var(--card-border);
-        border-radius: var(--radius-lg);
-        max-width: 360px;
-        width: 100%;
-        padding: 2rem 1.75rem;
-        text-align: center;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.35);
-        animation: slideUp 0.35s cubic-bezier(0.16,1,0.3,1);
-    ">
-        {{-- Header --}}
-        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📸</div>
-        <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.4rem;">
-            Verifikasi Wajah
-        </h2>
-        <p id="cameraInstruction" style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem; line-height: 1.5;">
-            Posisikan wajah Anda tepat di dalam lingkaran, lalu ambil foto.
-        </p>
+<div id="cameraModal" class="face-modal-backdrop" style="display: none;">
+    <div id="cameraModalContent" class="face-modal-card">
+        {{-- Close button top right --}}
+        <button type="button" class="face-modal-close" onclick="closeCameraModal()" aria-label="Tutup">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
         {{-- ── LIVE CAMERA STEP ── --}}
         <div id="cameraStep">
-            {{-- Video + oval ring --}}
-            <div style="position: relative; width: 200px; height: 200px; margin: 0 auto 1.25rem; overflow: hidden; border-radius: 50%;">
+            {{-- Simple Header --}}
+            <h2 class="face-modal-title">Verifikasi Wajah</h2>
+            <p id="cameraInstruction" class="face-modal-subtitle">
+                Posisikan wajah Anda tepat di dalam lingkaran
+            </p>
+
+            {{-- Clean Circular Camera Viewfinder --}}
+            <div class="face-circle-wrapper">
                 <video id="cameraVideo"
                        autoplay
                        playsinline
-                       muted
-                       style="
-                           width: 200px;
-                           height: 200px;
-                           object-fit: cover;
-                           border-radius: 50%;
-                           display: block;
-                           transform: scaleX(-1); /* mirror for selfie */
-                           background: #000;
-                       "></video>
+                       muted></video>
+                <div id="faceGuideRing" class="face-circle-ring searching"></div>
+            </div>
 
-                {{-- Dynamic Scanning Line --}}
-                <div id="faceScanBeam" style="
-                    position: absolute;
-                    left: 0;
-                    right: 0;
-                    height: 3px;
-                    background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
-                    box-shadow: 0 0 10px #38bdf8;
-                    pointer-events: none;
-                    animation: scan-beam 1.8s ease-in-out infinite;
-                "></div>
-
-                {{-- Guide Ring --}}
-                <div id="faceGuideRing" style="
-                    position: absolute;
-                    inset: 0;
-                    border-radius: 50%;
-                    border: 4px solid #ef4444;
-                    box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
-                    pointer-events: none;
-                    animation: pulse-red 2s ease-in-out infinite;
-                    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-                "></div>
-
-                {{-- Status Badge --}}
-                <div id="faceStatusBadge" style="
-                    position: absolute;
-                    bottom: 8px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    font-size: 0.68rem;
-                    font-weight: 700;
-                    letter-spacing: 0.03em;
-                    padding: 3px 8px;
-                    border-radius: 12px;
-                    background: rgba(15, 23, 42, 0.85);
-                    border: 1px solid rgba(239, 68, 68, 0.4);
-                    color: #f87171;
-                    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-                    white-space: nowrap;
-                    transition: all 0.25s ease;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    z-index: 10;
-                ">
-                    <i class="fa-solid fa-triangle-exclamation"></i> WAJAH BELUM TERDETEKSI
+            {{-- Clean Status Pill --}}
+            <div class="face-status-container">
+                <div id="faceStatusBadge" class="face-status-badge searching">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Mencari Wajah...</span>
                 </div>
             </div>
 
-            <button type="button" id="captureBtn" class="btn btn-primary btn-block" disabled style="margin-bottom: 0.75rem; opacity: 0.45; cursor: not-allowed; transition: all 0.25s ease;">
-                <i class="fa-solid fa-camera"></i> Ambil Foto
-            </button>
-            <button type="button" id="cancelCameraBtn"
-                    style="background:none; border:none; color:var(--text-muted); font-size:0.8rem; cursor:pointer; text-decoration:underline;">
-                Batal
-            </button>
+            {{-- Action Buttons --}}
+            <div class="face-modal-actions">
+                <button type="button" id="captureBtn" class="btn-face-capture" disabled>
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Ambil Foto</span>
+                </button>
+                <button type="button" id="cancelCameraBtn" class="btn-face-cancel">
+                    Batal
+                </button>
+            </div>
         </div>
 
         {{-- ── PREVIEW / CONFIRM STEP ── --}}
         <div id="previewStep" style="display: none;">
-            <div style="position: relative; width: 160px; height: 160px; margin: 0 auto 1.25rem;">
-                <img id="capturedPreview"
-                     alt="Foto Wajah"
-                     style="
-                         width: 160px;
-                         height: 160px;
-                         border-radius: 50%;
-                         object-fit: cover;
-                         border: 3px solid #10b981;
-                         display: block;
-                     ">
-                <div style="
-                    position: absolute;
-                    inset: -4px;
-                    border-radius: 50%;
-                    border: 2px solid rgba(16,185,129,0.35);
-                    pointer-events: none;
-                "></div>
-            </div>
-            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-                Apakah foto sudah jelas? Pastikan wajah Anda terlihat dengan baik.
+            <h2 class="face-modal-title">Hasil Foto Wajah</h2>
+            <p class="face-modal-subtitle">
+                Pastikan wajah Anda terlihat jelas & tegak
             </p>
-            <div style="display: flex; gap: 0.75rem;">
-                <button type="button" id="retakeBtn" class="btn btn-secondary" style="flex: 1;">
-                    <i class="fa-solid fa-rotate-left"></i> Ulangi
-                </button>
-                <button type="button" id="usePhotoBtn" class="btn btn-primary" style="flex: 1;">
-                    <i class="fa-solid fa-check"></i> Gunakan Foto
-                </button>
+
+            <div class="face-preview-wrapper">
+                <img id="capturedPreview" alt="Foto Wajah">
+                <div class="face-preview-badge">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+            </div>
+
+            <div class="face-modal-actions" style="margin-top: 1.25rem;">
+                <div style="display: flex; gap: 0.75rem; width: 100%;">
+                    <button type="button" id="retakeBtn" class="btn-face-secondary" style="flex: 1;">
+                        <i class="fa-solid fa-rotate-left"></i> Ulangi
+                    </button>
+                    <button type="button" id="usePhotoBtn" class="btn-face-primary" style="flex: 1.2;">
+                        <i class="fa-solid fa-check"></i> Gunakan Foto
+                    </button>
+                </div>
             </div>
         </div>
 
         {{-- ── ERROR STEP ── --}}
         <div id="cameraErrorStep" style="display: none;">
-            <div style="font-size: 3rem; margin-bottom: 0.75rem;">🚫</div>
-            <p id="cameraErrorMsg" style="font-size: 0.88rem; color: var(--accent-rose); font-weight: 600; margin-bottom: 1.25rem;">
-                Kamera tidak dapat diakses.
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #dc2626;">
+                <i class="fa-solid fa-video-slash"></i>
+            </div>
+            <h2 class="face-modal-title">Kamera Tidak Dapat Diakses</h2>
+            <p id="cameraErrorMsg" class="face-error-text" style="font-size: 0.85rem; color: #64748b; margin: 0.5rem 0 1.25rem; line-height: 1.5;">
+                Izinkan akses kamera di browser Anda, lalu muat ulang halaman.
             </p>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
-                Buka <strong>Pengaturan browser</strong>, izinkan akses kamera untuk situs ini, lalu refresh halaman dan coba lagi.
-            </p>
-            <button type="button" id="cancelCameraErrBtn"
-                    class="btn btn-secondary btn-block">
+            <button type="button" id="cancelCameraErrBtn" class="btn-face-secondary" style="width: 100%;">
                 <i class="fa-solid fa-xmark"></i> Tutup
             </button>
         </div>
@@ -312,26 +238,263 @@
 </div>
 
 <style>
-@keyframes pulse-green {
-    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 12px rgba(16,185,129,0.5); }
-    50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 24px rgba(16,185,129,0.85); }
+/* ── Face Verification Modal — Simple & Clean ── */
+.face-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    animation: faceFadeIn 0.2s ease-out;
 }
-@keyframes pulse-red {
-    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 10px rgba(239,68,68,0.3); }
-    50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 18px rgba(239,68,68,0.6); }
+
+.face-modal-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    max-width: 360px;
+    width: 100%;
+    padding: 1.75rem 1.5rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.18);
+    animation: faceSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
 }
-@keyframes scan-beam {
-    0%   { top: 5%; opacity: 0; }
-    25%  { opacity: 0.85; }
-    75%  { opacity: 0.85; }
-    100% { top: 92%; opacity: 0; }
+
+.face-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
 }
-.btn-pulse {
-    animation: btn-glow 1.5s ease-in-out infinite;
+.face-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
 }
-@keyframes btn-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
-    50%      { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+
+.face-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.35rem;
+}
+
+.face-modal-subtitle {
+    font-size: 0.84rem;
+    color: #64748b;
+    line-height: 1.4;
+    margin: 0 0 1.25rem;
+    min-height: 1.4em;
+}
+
+/* ── Clean Circular Viewport ── */
+.face-circle-wrapper {
+    position: relative;
+    width: 195px;
+    height: 195px;
+    margin: 0 auto 0.85rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #0f172a;
+}
+
+#cameraVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    transform: scaleX(-1); /* mirror selfie */
+}
+
+.face-circle-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    border: 3.5px solid #cbd5e1;
+}
+.face-circle-ring.searching {
+    border-color: #cbd5e1;
+}
+.face-circle-ring.detected {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+/* ── Status Pill ── */
+.face-status-container {
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.15rem;
+}
+
+.face-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.face-status-badge.searching {
+    background: #f1f5f9;
+    color: #64748b;
+}
+.face-status-badge.detected {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+/* ── Action Buttons ── */
+.face-modal-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-face-capture {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.8rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+.btn-face-capture.active {
+    background: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+.btn-face-capture.active:hover {
+    background: #1d4ed8;
+}
+
+.btn-face-cancel {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.btn-face-cancel:hover {
+    color: #0f172a;
+}
+
+.btn-face-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.btn-face-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-face-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-face-secondary:hover {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+/* ── Preview Step ── */
+.face-preview-wrapper {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 0.75rem;
+}
+#capturedPreview {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #10b981;
+    display: block;
+}
+.face-preview-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #ffffff;
+    border: 2.5px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+/* ── Animations ── */
+@keyframes faceFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes faceSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 </style>
 
@@ -385,7 +548,7 @@ if (deviceUuidInput) {
 }
 
 // ══════════════════════════════════════════════════════
-//  ALREADY ATTENDED LOGIC
+//  ALREADY ATTENDED LOGIC (Strictly Per-Session Code)
 // ══════════════════════════════════════════════════════
 function checkAlreadyAttended() {
     const codeInput = document.getElementById('code');
@@ -395,6 +558,14 @@ function checkAlreadyAttended() {
     let isAttended = false;
     const currentCode = codeInput ? codeInput.value.trim().toUpperCase() : '';
 
+    // Clean any legacy generic daily flags so other sessions today are not blocked
+    try {
+        localStorage.removeItem(`device_attended_${localDate}`);
+        localStorage.removeItem('last_attended_date');
+        localStorage.removeItem('last_attended_session_code');
+    } catch (e) {}
+
+    // Only block if this EXACT session code was already submitted on this device today
     if (currentCode) {
         if (
             localStorage.getItem(`attended_${currentCode}_${localDate}`) === 'true' ||
@@ -402,21 +573,6 @@ function checkAlreadyAttended() {
         ) {
             isAttended = true;
         }
-    }
-
-    // Also check last attended session for today
-    const lastCode = localStorage.getItem('last_attended_session_code');
-    const lastDate = localStorage.getItem('last_attended_date');
-    if (lastDate === localDate && lastCode) {
-        if (!currentCode || currentCode === lastCode) {
-            if (codeInput && !currentCode) codeInput.value = lastCode;
-            isAttended = true;
-        }
-    }
-
-    // Also check generic device attended flag today
-    if (localStorage.getItem(`device_attended_${localDate}`) === 'true') {
-        isAttended = true;
     }
 
     if (isAttended) {
@@ -437,11 +593,12 @@ function checkAlreadyAttended() {
     }
 }
 
-// Check on server via API asynchronously as well (ensures sync across tabs/devices)
+// Check on server via API asynchronously per specific session code
 async function verifyServerAttendance() {
     const uuid = getDeviceUUID();
     const codeInput = document.getElementById('code');
     const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+    if (!code || !uuid) return;
     
     try {
         const res = await fetch(`/api/check-attended?device_uuid=${encodeURIComponent(uuid)}&code=${encodeURIComponent(code)}`);
@@ -450,12 +607,7 @@ async function verifyServerAttendance() {
             if (data.attended) {
                 const d = new Date();
                 const localDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-                if (code) {
-                    localStorage.setItem(`attended_${code}_${localDate}`, 'true');
-                    localStorage.setItem('last_attended_session_code', code);
-                    localStorage.setItem('last_attended_date', localDate);
-                }
-                localStorage.setItem(`device_attended_${localDate}`, 'true');
+                localStorage.setItem(`attended_${code}_${localDate}`, 'true');
                 checkAlreadyAttended();
             }
         }
@@ -471,6 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('code').addEventListener('input', () => {
     checkAlreadyAttended();
+    verifyServerAttendance();
 });
 
 // ══════════════════════════════════════════════════════
@@ -882,42 +1035,27 @@ function setFaceDetectedState(detected) {
     const badge = document.getElementById('faceStatusBadge');
     const instruction = document.getElementById('cameraInstruction');
     const btn = document.getElementById('captureBtn');
-    const scanBeam = document.getElementById('faceScanBeam');
 
     if (!ring || !badge || !btn) return;
 
     if (detected) {
-        ring.style.borderColor = '#10b981';
-        ring.style.animation = 'pulse-green 1.5s ease-in-out infinite';
-        badge.style.color = '#10b981';
-        badge.style.borderColor = 'rgba(16,185,129,0.4)';
-        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> WAJAH TERDETEKSI';
+        ring.className = 'face-circle-ring detected';
+        badge.className = 'face-status-badge detected';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Wajah Terdeteksi</span>';
         if (instruction) {
-            instruction.innerHTML = '<span style="color: #10b981; font-weight: 600;">Wajah terdeteksi dengan baik!</span> Silakan klik tombol Ambil Foto.';
+            instruction.innerHTML = '<span style="color: #059669; font-weight: 600;">Wajah terdeteksi!</span> Silakan ambil foto.';
         }
-        if (scanBeam) scanBeam.style.display = 'none';
-
         btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-        btn.style.pointerEvents = 'auto';
-        btn.classList.add('btn-pulse');
+        btn.classList.add('active');
     } else {
-        ring.style.borderColor = '#ef4444';
-        ring.style.animation = 'pulse-red 2s ease-in-out infinite';
-        badge.style.color = '#f87171';
-        badge.style.borderColor = 'rgba(239,68,68,0.4)';
-        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> WAJAH BELUM TERDETEKSI';
+        ring.className = 'face-circle-ring searching';
+        badge.className = 'face-status-badge searching';
+        badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Mencari Wajah...</span>';
         if (instruction) {
-            instruction.textContent = 'Posisikan wajah Anda tepat di dalam lingkaran agar tombol foto aktif.';
+            instruction.textContent = 'Posisikan wajah Anda tepat di dalam lingkaran';
         }
-        if (scanBeam) scanBeam.style.display = 'block';
-
         btn.disabled = true;
-        btn.style.opacity = '0.45';
-        btn.style.cursor = 'not-allowed';
-        btn.style.pointerEvents = 'none';
-        btn.classList.remove('btn-pulse');
+        btn.classList.remove('active');
     }
 }
 
