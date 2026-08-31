@@ -878,19 +878,19 @@ class AdminController extends Controller
         ]);
 
         $appSetting = AppSetting::getInstance();
-        $appSetting->update($request->only([
-            'school_name',
-            'app_name',
-            'school_address',
-            'default_pagi_start',
-            'default_pagi_end',
-            'default_sore_start',
-            'default_sore_end',
-            'default_radius',
-            'kepsek_name',
-            'kepsek_nip',
-            'kepsek_pangkat',
-        ]));
+        $appSetting->update([
+            'school_name'        => $request->input('school_name', 'SMKN 1 Ciamis'),
+            'app_name'           => $request->input('app_name') ?: 'Asign',
+            'school_address'     => $request->input('school_address'),
+            'default_pagi_start' => $request->input('default_pagi_start'),
+            'default_pagi_end'   => $request->input('default_pagi_end'),
+            'default_sore_start' => $request->input('default_sore_start'),
+            'default_sore_end'   => $request->input('default_sore_end'),
+            'default_radius'     => $request->input('default_radius'),
+            'kepsek_name'        => $request->input('kepsek_name'),
+            'kepsek_nip'         => $request->input('kepsek_nip'),
+            'kepsek_pangkat'     => $request->input('kepsek_pangkat'),
+        ]);
 
         // Sinkronisasi otomatis ke akun User Kepala Sekolah
         \App\Models\User::where('role', 'kepala_sekolah')->update([

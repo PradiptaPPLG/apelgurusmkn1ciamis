@@ -252,7 +252,9 @@
             <div>Kepala Sekolah,</div>
             <div class="sig-space"></div>
             <div class="sig-name">{{ \App\Services\AttendanceExporter::getKepsekName() }}</div>
-            <div>{{ \App\Services\AttendanceExporter::getKepsekGolok() }}</div>
+            @if(\App\Services\AttendanceExporter::getKepsekGolok())
+                <div>{{ \App\Services\AttendanceExporter::getKepsekGolok() }}</div>
+            @endif
             <div class="sig-nip">NIP. {{ \App\Services\AttendanceExporter::getKepsekNip() }}</div>
         </div>
     </div>

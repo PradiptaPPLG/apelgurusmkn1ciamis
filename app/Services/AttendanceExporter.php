@@ -26,7 +26,7 @@ class AttendanceExporter
 
     public static function getKepsekGolok(): string
     {
-        return \App\Models\AppSetting::getInstance()->kepsek_pangkat ?: self::KEPSEK_GOLOK;
+        return trim((string) (\App\Models\AppSetting::getInstance()->kepsek_pangkat ?? ''));
     }
 
     public static function getKepsekNip(): string
@@ -260,13 +260,16 @@ class AttendanceExporter
             ->setName('Times New Roman')->setSize(10);
         $nsStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // Pangkat/Golongan
-        $sigRow++;
-        $sheet->mergeCells("C{$sigRow}:E{$sigRow}");
-        $sheet->setCellValue("C{$sigRow}", self::getKepsekGolok());
-        $sheet->getStyle("C{$sigRow}")->getAlignment()
-            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("C{$sigRow}")->getFont()->setName('Times New Roman')->setSize(10);
+        // Pangkat/Golongan (jika diisi)
+        $golok = self::getKepsekGolok();
+        if (!empty($golok)) {
+            $sigRow++;
+            $sheet->mergeCells("C{$sigRow}:E{$sigRow}");
+            $sheet->setCellValue("C{$sigRow}", $golok);
+            $sheet->getStyle("C{$sigRow}")->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("C{$sigRow}")->getFont()->setName('Times New Roman')->setSize(10);
+        }
 
         // NIP
         $sigRow++;
@@ -514,10 +517,13 @@ class AttendanceExporter
         $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getFont()->setBold(true)->setUnderline(true);
 
-        $sigRow++;
-        $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
-        $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", self::getKepsekGolok());
-        $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $golokRecap = self::getKepsekGolok();
+        if (!empty($golokRecap)) {
+            $sigRow++;
+            $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
+            $sheet->setCellValue("{$sigStartColLetter}{$sigRow}", $golokRecap);
+            $sheet->getStyle("{$sigStartColLetter}{$sigRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
 
         $sigRow++;
         $sheet->mergeCells("{$sigStartColLetter}{$sigRow}:{$lastColLetter}{$sigRow}");
