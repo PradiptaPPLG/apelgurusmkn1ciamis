@@ -212,6 +212,9 @@ class KepsekController extends Controller
      */
     public function exportPDF($id, Request $request)
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(300);
+
         $session     = ApelSession::findOrFail($id);
         $attendances = $this->getFilteredAttendances($id, $request);
 
@@ -405,6 +408,9 @@ class KepsekController extends Controller
      */
     public function exportRekapPDF(Request $request)
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(300);
+
         $data = $this->getRekapData($request);
 
         $logoBase64 = null;
