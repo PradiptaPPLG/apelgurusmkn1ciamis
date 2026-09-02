@@ -174,18 +174,34 @@ class KepsekController extends Controller
             $search = $request->search;
             $query->whereHas('participant', fn ($q) => $q->where('name', 'like', "%{$search}%"));
         }
-        if ($request->filled('jabatan')) {
-            $j = $request->jabatan;
-            $query->whereHas('participant', function ($q) use ($j) {
-                if (in_array(strtoupper($j), ['TU', 'TUT', 'TUTT', 'TU TT'])) {
-                    $q->whereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT']);
-                } elseif (strtoupper($j) === 'PLP') {
-                    $q->where(fn ($sub) => $sub->where('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%'));
-                } elseif (strtoupper($j) === 'PPG') {
-                    $q->where(fn ($sub) => $sub->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%'));
-                } else {
-                    $q->where('role', $j);
-                }
+
+        $jabatans = $request->input('jabatan');
+        if (!is_array($jabatans)) {
+            $jabatans = $request->filled('jabatan') ? [$request->jabatan] : [];
+        }
+        $jabatans = array_filter($jabatans);
+
+        if (!empty($jabatans)) {
+            $query->whereHas('participant', function ($q) use ($jabatans) {
+                $q->where(function ($subQ) use ($jabatans) {
+                    foreach ($jabatans as $j) {
+                        $jUpper = strtoupper(trim($j));
+                        if (in_array($jUpper, ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                            $subQ->orWhereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT'])
+                                 ->orWhere('jabatan', 'like', '%Tata Usaha%')
+                                 ->orWhere('jabatan', 'like', '%Pengadministrasi%')
+                                 ->orWhere('jenis_kepegawaian', 'TU');
+                        } elseif ($jUpper === 'PLP') {
+                            $subQ->orWhere('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%')->orWhere('role', 'PPL')->orWhere('jabatan', 'like', '%PPL%');
+                        } elseif ($jUpper === 'PPG') {
+                            $subQ->orWhere('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%');
+                        } elseif ($jUpper === 'WALI KELAS') {
+                            $subQ->orWhere('role', 'Wali Kelas')->orWhere('jabatan', 'like', '%Wali Kelas%');
+                        } else {
+                            $subQ->orWhere('role', $j)->orWhere('jabatan', 'like', "%{$j}%");
+                        }
+                    }
+                });
             });
         }
         if ($request->filled('date_from')) {
@@ -195,13 +211,45 @@ class KepsekController extends Controller
             $query->whereDate('signed_in_at', '<=', $request->date_to);
         }
 
-        $attendances = $query->orderBy('signed_in_at', 'asc')->get();
+        $attendances = $query->orderBy('signed_in_at', 'asc')
+            ->paginate(10, ['*'], 'att_page')
+            ->withQueryString();
 
         $allCheckedInNiks   = Attendance::where('apel_session_id', $id)->pluck('participant_nik')->toArray();
-        $absentParticipants = Participant::where('status', 'aktif')
-            ->whereNotIn('nik', $allCheckedInNiks)
-            ->orderBy('name')
-            ->get();
+        
+        $absentQuery = Participant::where('status', 'aktif')
+            ->whereNotIn('nik', $allCheckedInNiks);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $absentQuery->where('name', 'like', "%{$search}%");
+        }
+
+        if (!empty($jabatans)) {
+            $absentQuery->where(function ($subQ) use ($jabatans) {
+                foreach ($jabatans as $j) {
+                    $jUpper = strtoupper(trim($j));
+                    if (in_array($jUpper, ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                        $subQ->orWhereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT'])
+                             ->orWhere('jabatan', 'like', '%Tata Usaha%')
+                             ->orWhere('jabatan', 'like', '%Pengadministrasi%')
+                             ->orWhere('jenis_kepegawaian', 'TU');
+                    } elseif ($jUpper === 'PLP') {
+                        $subQ->orWhere('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%')->orWhere('role', 'PPL')->orWhere('jabatan', 'like', '%PPL%');
+                    } elseif ($jUpper === 'PPG') {
+                        $subQ->orWhere('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%');
+                    } elseif ($jUpper === 'WALI KELAS') {
+                        $subQ->orWhere('role', 'Wali Kelas')->orWhere('jabatan', 'like', '%Wali Kelas%');
+                    } else {
+                        $subQ->orWhere('role', $j)->orWhere('jabatan', 'like', "%{$j}%");
+                    }
+                }
+            });
+        }
+
+        $absentParticipants = $absentQuery->orderBy('name')
+            ->paginate(10, ['*'], 'abs_page')
+            ->withQueryString();
 
         return view('kepsek.session_detail', compact('session', 'attendances', 'absentParticipants'));
     }
@@ -241,7 +289,7 @@ class KepsekController extends Controller
     {
         $session       = ApelSession::findOrFail($id);
         $attendances   = $this->getFilteredAttendances($id, $request);
-        $jabatanFilter = $request->get('jabatan', '');
+        $jabatanFilter = is_array($request->get('jabatan')) ? implode(', ', $request->get('jabatan')) : $request->get('jabatan', '');
 
         $spreadsheet = \App\Services\AttendanceExporter::buildExcel($session, $attendances, $jabatanFilter);
         $writer      = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
@@ -280,18 +328,34 @@ class KepsekController extends Controller
             $s = $request->search;
             $query->whereHas('participant', fn ($q) => $q->where('name', 'like', "%{$s}%"));
         }
-        if ($request->filled('jabatan')) {
-            $j = $request->jabatan;
-            $query->whereHas('participant', function ($q) use ($j) {
-                if (in_array(strtoupper($j), ['TU', 'TUT', 'TUTT', 'TU TT'])) {
-                    $q->whereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT']);
-                } elseif (strtoupper($j) === 'PLP') {
-                    $q->where(fn ($sub) => $sub->where('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%'));
-                } elseif (strtoupper($j) === 'PPG') {
-                    $q->where(fn ($sub) => $sub->where('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%'));
-                } else {
-                    $q->where('role', $j);
-                }
+        
+        $jabatans = $request->input('jabatan');
+        if (!is_array($jabatans)) {
+            $jabatans = $request->filled('jabatan') ? [$request->jabatan] : [];
+        }
+        $jabatans = array_filter($jabatans);
+
+        if (!empty($jabatans)) {
+            $query->whereHas('participant', function ($q) use ($jabatans) {
+                $q->where(function ($subQ) use ($jabatans) {
+                    foreach ($jabatans as $j) {
+                        $jUpper = strtoupper(trim($j));
+                        if (in_array($jUpper, ['TU', 'TUT', 'TUTT', 'TU TT'])) {
+                            $subQ->orWhereIn('role', ['TU', 'TU TT', 'TUT', 'TUTT'])
+                                 ->orWhere('jabatan', 'like', '%Tata Usaha%')
+                                 ->orWhere('jabatan', 'like', '%Pengadministrasi%')
+                                 ->orWhere('jenis_kepegawaian', 'TU');
+                        } elseif ($jUpper === 'PLP') {
+                            $subQ->orWhere('role', 'PLP')->orWhere('jabatan', 'like', '%PLP%')->orWhere('role', 'PPL')->orWhere('jabatan', 'like', '%PPL%');
+                        } elseif ($jUpper === 'PPG') {
+                            $subQ->orWhere('role', 'PPG')->orWhere('jabatan', 'like', '%PPG%');
+                        } elseif ($jUpper === 'WALI KELAS') {
+                            $subQ->orWhere('role', 'Wali Kelas')->orWhere('jabatan', 'like', '%Wali Kelas%');
+                        } else {
+                            $subQ->orWhere('role', $j)->orWhere('jabatan', 'like', "%{$j}%");
+                        }
+                    }
+                });
             });
         }
         if ($request->filled('date_from')) {

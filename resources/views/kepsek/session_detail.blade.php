@@ -83,42 +83,60 @@
             </div>
 
             {{-- Filter Bar --}}
+            @php
+                $selectedJabatans = request('jabatan', []);
+                if (!is_array($selectedJabatans)) {
+                    $selectedJabatans = $selectedJabatans ? [$selectedJabatans] : [];
+                }
+                $availableJabatans = ['Guru', 'TU', 'Wali Kelas', 'PLP', 'PPG'];
+            @endphp
             <form method="GET" action="{{ route('kepsek.sessions.detail', $session->id) }}" id="filterForm"
-                  style="background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
-                <div style="flex:1;min-width:160px;">
-                    <label for="kepsek_filter_search" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama</label>
-                    <input type="text" name="search" id="kepsek_filter_search" aria-label="Cari Nama Peserta" value="{{ request('search') }}" placeholder="Ketik nama lalu Enter..."
-                           style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
+                  style="background:var(--card-bg);border:1.5px solid var(--card-border);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;">
+                <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
+                    <div style="flex:1;min-width:180px;">
+                        <label for="kepsek_filter_search" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama</label>
+                        <input type="text" name="search" id="kepsek_filter_search" aria-label="Cari Nama Peserta" value="{{ request('search') }}" placeholder="Ketik nama lalu Enter..."
+                               style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
+                    </div>
+                    <div style="min-width:140px;">
+                        <label for="kepsek_filter_date_from" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Dari Tanggal</label>
+                        <input type="date" name="date_from" id="kepsek_filter_date_from" aria-label="Dari Tanggal" value="{{ request('date_from') }}" onchange="this.form.submit()"
+                               style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
+                    </div>
+                    <div style="min-width:140px;">
+                        <label for="kepsek_filter_date_to" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Sampai Tanggal</label>
+                        <input type="date" name="date_to" id="kepsek_filter_date_to" aria-label="Sampai Tanggal" value="{{ request('date_to') }}" onchange="this.form.submit()"
+                               style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
+                    </div>
+                    <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+                        <button type="submit" class="btn btn-primary btn-sm" style="height:38px;padding:0 1rem;">
+                            <i class="fa-solid fa-filter"></i> Saring
+                        </button>
+                        @if(request()->hasAny(['search','jabatan','date_from','date_to']))
+                        <a href="{{ route('kepsek.sessions.detail', $session->id) }}" class="btn btn-secondary btn-sm" style="height:38px;padding:0 1rem;display:inline-flex;align-items:center;justify-content:center;">
+                            <i class="fa-solid fa-rotate-left"></i> Atur Ulang
+                        </a>
+                        @endif
+                    </div>
                 </div>
-                <div style="min-width:150px;">
-                    <label for="kepsek_filter_jabatan" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-briefcase"></i> Jabatan</label>
-                    <select name="jabatan" id="kepsek_filter_jabatan" aria-label="Pilih Jabatan" onchange="this.form.submit()" style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
-                        <option value="">Semua Jabatan</option>
-                        @foreach(['Guru','TU','Wali Kelas','PLP','PPG'] as $j)
-                            <option value="{{ $j }}" {{ request('jabatan') === $j ? 'selected' : '' }}>{{ $j }}</option>
+
+                {{-- Checkbox Kategori / Jabatan --}}
+                <div style="margin-top:0.85rem; padding-top:0.75rem; border-top:1px dashed var(--input-border);">
+                    <div style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.35rem;">
+                        <i class="fa-solid fa-square-check" style="color:var(--accent-indigo);"></i> Filter Kategori / Jabatan (Centang):
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.6rem 1.2rem; align-items:center;">
+                        @foreach($availableJabatans as $j)
+                            <label style="display:inline-flex; align-items:center; gap:0.35rem; font-size:0.85rem; font-weight:600; color:var(--text-main); cursor:pointer;">
+                                <input type="checkbox" name="jabatan[]" value="{{ $j }}" onchange="this.form.submit()"
+                                       {{ in_array($j, $selectedJabatans) ? 'checked' : '' }}
+                                       style="width:16px; height:16px; accent-color:var(--accent-indigo); cursor:pointer;">
+                                <span>{{ $j }}</span>
+                            </label>
                         @endforeach
-                    </select>
+                    </div>
                 </div>
-                <div style="min-width:140px;">
-                    <label for="kepsek_filter_date_from" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Dari Tanggal</label>
-                    <input type="date" name="date_from" id="kepsek_filter_date_from" aria-label="Dari Tanggal" value="{{ request('date_from') }}" onchange="this.form.submit()"
-                           style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
-                </div>
-                <div style="min-width:140px;">
-                    <label for="kepsek_filter_date_to" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:0.3rem;display:flex;align-items:center;gap:0.25rem;"><i class="fa-solid fa-calendar-day"></i> Sampai Tanggal</label>
-                    <input type="date" name="date_to" id="kepsek_filter_date_to" aria-label="Sampai Tanggal" value="{{ request('date_to') }}" onchange="this.form.submit()"
-                           style="width:100%;padding:0.5rem 0.75rem;border:1.5px solid var(--input-border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text-main);font-size:0.88rem;">
-                </div>
-                <div style="display:flex;gap:0.5rem;align-items:flex-end;">
-                    <button type="submit" class="btn btn-primary btn-sm" style="height:38px;padding:0 1rem;">
-                        <i class="fa-solid fa-filter"></i> Saring
-                    </button>
-                    @if(request()->hasAny(['search','jabatan','date_from','date_to']))
-                    <a href="{{ route('kepsek.sessions.detail', $session->id) }}" class="btn btn-secondary btn-sm" style="height:38px;padding:0 1rem;display:inline-flex;align-items:center;justify-content:center;">
-                        <i class="fa-solid fa-rotate-left"></i> Atur Ulang
-                    </a>
-                    @endif
-                </div>
+
             </form>
 
             @if(request()->hasAny(['search','jabatan','date_from','date_to']))
@@ -126,10 +144,10 @@
                 <i class="fa-solid fa-circle-info" style="color:var(--accent-indigo);"></i>
                 <span>Filter aktif:</span>
                 @if(request('search')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Nama: "{{ request('search') }}"</span> @endif
-                @if(request('jabatan')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Jabatan: {{ request('jabatan') }}</span> @endif
+                @if(!empty($selectedJabatans)) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Jabatan: {{ implode(', ', $selectedJabatans) }}</span> @endif
                 @if(request('date_from')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Dari: {{ request('date_from') }}</span> @endif
                 @if(request('date_to')) <span style="background:rgba(99,102,241,0.1);color:var(--accent-indigo);padding:0.15rem 0.5rem;border-radius:20px;font-weight:600;">Sampai: {{ request('date_to') }}</span> @endif
-                <span style="margin-left:0.25rem;">— menampilkan <strong>{{ $attendances->count() }}</strong> peserta</span>
+                <span style="margin-left:0.25rem;">— Kehadiran: <strong>{{ $attendances->total() }}</strong> | Belum Presensi: <strong>{{ $absentParticipants->total() }}</strong></span>
             </div>
             @endif
 
@@ -157,14 +175,14 @@
                 <div>
                     <div style="font-size:0.8rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Kehadiran</div>
                     <div style="font-size:1.5rem;font-weight:800;color:var(--accent-teal);margin-top:0.1rem;">
-                        {{ $attendances->count() }} <span style="font-size:0.85rem;font-weight:500;color:var(--text-muted);">Peserta</span>
+                        {{ $attendances->total() }} <span style="font-size:0.85rem;font-weight:500;color:var(--text-muted);">Peserta</span>
                     </div>
                 </div>
             </div>
 
             {{-- Attendance Table --}}
             <h3 style="margin-bottom:1.25rem;font-size:1.2rem;color:var(--text-main);">
-                <i class="fa-solid fa-clipboard-list" style="color:var(--accent-teal)"></i> Riwayat Kehadiran Peserta
+                <i class="fa-solid fa-clipboard-list" style="color:var(--accent-teal)"></i> Riwayat Kehadiran Peserta ({{ $attendances->total() }} orang)
             </h3>
 
             @if ($attendances->isEmpty())
@@ -190,7 +208,7 @@
                         <tbody>
                             @foreach ($attendances as $idx => $a)
                             <tr>
-                                <td>{{ $idx + 1 }}</td>
+                                <td>{{ $idx + 1 + ($attendances->currentPage() - 1) * $attendances->perPage() }}</td>
                                 <td style="font-family:monospace;color:var(--text-main);">
                                     <div style="font-weight:700;">{{ $a->participant_nik }}</div>
                                     @if($a->participant && $a->participant->nip)
@@ -241,22 +259,25 @@
                         </tbody>
                     </table>
                 </div>
+                <div style="margin-top:1rem;">
+                    {{ $attendances->links() }}
+                </div>
             @endif
 
             {{-- Absent Participants --}}
             <div style="background:rgba(239,68,68,0.04);border:1.5px solid rgba(239,68,68,0.15);border-radius:var(--radius-md);padding:1.5rem;margin-top:2.5rem;margin-bottom:2rem;">
                 <h3 style="margin-top:0;margin-bottom:1rem;font-size:1.15rem;color:#ef4444;display:flex;align-items:center;gap:0.55rem;">
                     <i class="fa-solid fa-circle-xmark"></i>
-                    <span>Daftar Peserta Belum Presensi ({{ $absentParticipants->count() }} orang)</span>
+                    <span>Daftar Peserta Belum Presensi ({{ $absentParticipants->total() }} orang)</span>
                 </h3>
                 @if($absentParticipants->isEmpty())
                     <div style="color:#10b981;font-weight:600;font-size:0.88rem;display:flex;align-items:center;gap:0.4rem;">
                         <i class="fa-solid fa-circle-check" style="font-size:1.1rem;"></i> Semua peserta aktif sudah melakukan presensi.
                     </div>
                 @else
-                    <div class="table-responsive" style="max-height:280px;overflow-y:auto;border:1px solid rgba(239,68,68,0.1);border-radius:var(--radius-sm);">
+                    <div class="table-responsive" style="border:1px solid rgba(239,68,68,0.1);border-radius:var(--radius-sm);">
                         <table class="table-custom" style="margin-bottom:0;">
-                            <thead style="position:sticky;top:0;z-index:2;">
+                            <thead>
                                 <tr>
                                     <th style="width:50px;background:#fee2e2;color:#991b1b;border-bottom:1.5px solid rgba(239,68,68,0.2);">No</th>
                                     <th style="background:#fee2e2;color:#991b1b;border-bottom:1.5px solid rgba(239,68,68,0.2);">NIK / NIP</th>
@@ -268,7 +289,7 @@
                             <tbody>
                                 @foreach($absentParticipants as $idx => $ab)
                                 <tr style="background:rgba(254,242,242,0.25);">
-                                    <td style="color:#991b1b;">{{ $idx + 1 }}</td>
+                                    <td style="color:#991b1b;">{{ $idx + 1 + ($absentParticipants->currentPage() - 1) * $absentParticipants->perPage() }}</td>
                                     <td style="font-family:monospace;color:#991b1b;">
                                         <strong>{{ $ab->nik }}</strong>
                                         @if($ab->nip)<div style="font-size:0.72rem;color:#b91c1c;opacity:0.85;">NIP: {{ $ab->nip }}</div>@endif
@@ -280,6 +301,9 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    <div style="margin-top:1rem;">
+                        {{ $absentParticipants->links() }}
                     </div>
                 @endif
             </div>
