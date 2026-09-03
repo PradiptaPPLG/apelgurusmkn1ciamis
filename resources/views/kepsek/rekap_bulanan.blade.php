@@ -43,7 +43,7 @@
                     9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
                 ];
                 $sessionCount = count($sessions);
-                $participantCount = count($participants);
+                $participantCount = method_exists($participants, 'total') ? $participants->total() : count($participants);
                 
                 // Calculate average rate
                 $totalPossibleSlots = $sessionCount * $participantCount;
@@ -190,7 +190,7 @@
                                     $pAttended = 0;
                                 @endphp
                                 <tr style="border-bottom: 1px solid var(--input-border);">
-                                    <td style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">{{ $idx + 1 }}</td>
+                                    <td style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">{{ $idx + 1 + ($participants->currentPage() - 1) * $participants->perPage() }}</td>
                                     <td>
                                         <div style="font-weight: 600; color: var(--text-main); font-size: 0.88rem;">{{ $p->name }}</div>
                                     </td>
@@ -239,6 +239,15 @@
                         </tbody>
                     </table>
                 </div>
+                
+                @if($participants->hasPages())
+                    <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--card-border); background: var(--card-bg);">
+                        <div class="pagination-wrapper" style="margin-top:0;">
+                            {{ $participants->links() }}
+                        </div>
+                    </div>
+                @endif
+            </div>
             </div>
 
         </div>

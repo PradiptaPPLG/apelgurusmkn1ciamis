@@ -329,7 +329,7 @@
                 </tbody>
             </table>
         </div>
-        <div style="margin-top: 1rem;">
+        <div class="pagination-wrapper">
             {{ $attendances->links() }}
         </div>
     @endif
@@ -382,7 +382,7 @@
                     </tbody>
                 </table>
             </div>
-            <div style="margin-top: 1rem;">
+            <div class="pagination-wrapper">
                 {{ $absentParticipants->links() }}
             </div>
         @endif

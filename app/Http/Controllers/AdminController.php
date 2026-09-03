@@ -706,7 +706,7 @@ class AdminController extends Controller
     /**
      * Helper to prepare monthly recap matrix data.
      */
-    protected function getRekapData(Request $request)
+    protected function getRekapData(Request $request, $paginate = false)
     {
         $month = (int) $request->get('month', Carbon::now()->month);
         $year  = (int) $request->get('year', Carbon::now()->year);
@@ -754,7 +754,9 @@ class AdminController extends Controller
             }
         }
 
-        $participants = $pQuery->orderBy('name', 'asc')->get();
+        $pQuery->orderBy('name', 'asc');
+
+        $participants = $paginate ? $pQuery->paginate(15)->withQueryString() : $pQuery->get();
 
         // 3. Build Attendance Matrix
         $sessionIds = $sessions->pluck('id')->toArray();
@@ -773,7 +775,7 @@ class AdminController extends Controller
      */
     public function rekapBulanan(Request $request)
     {
-        $data = $this->getRekapData($request);
+        $data = $this->getRekapData($request, true);
         return view('admin.rekap_bulanan', $data);
     }
 
